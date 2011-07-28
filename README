@@ -1,0 +1,86 @@
+Usage
+=====
+
+Type::
+
+    fab --list
+
+to get list of available commands.
+
+Running commands
+================
+
+You can pass arguments to commands using following methods:
+
+- Pass global configuration to `setup_conf()`::
+
+    from fabdeploy.api import setup_conf
+
+    @task
+    def staging():
+        env.conf = setup_conf(dict(
+            db_name='mydb',
+            db_user='myuser'
+        ))
+
+  Then command can be invoked without arguments::
+
+    fab staging postgres.create_db
+
+- Pass arguments directly to command::
+
+    fab staging postgres.create_db:db_name=mydb,db_user=myuser
+
+Configuration
+=============
+
+You can configure each module and task individually::
+
+    {
+        'postgres.db_name': 'postgresql',
+        'mysql.db_name': 'mysql',
+        'mysql.create_db.db_user': 'root',
+    }
+
+Each command can be reconfigured or extended
+============================================
+
+To upload project using tar archive you can use such command::
+
+    fab staging tar.push
+
+You can also write command to upload only your static dir using tar::
+
+     from fabdeploy import tar
+
+     @task
+     def push_static():
+         tar.push.run(src_dir=os.path.join(env.conf.django_ldir, 'static'),
+                      target_dir=posixpath.join(env.conf.django_dir, 'static'))
+
+Writing your task
+=================
+
+Your task in class-based fabric class except fabdeploy manages configuration for you::
+
+    from fabdeploy.api import Task, conf
+
+
+    class MessagePrinter(Task):
+        @conf
+        def message(self):
+            if self.conf.message:
+                return self.conf.message
+            return 'Please provide message'
+
+        def do(self):
+            puts(self.conf.message)
+
+    message_printer = MessagePrinter()
+
+Then you run this command like this::
+
+    $ fab message_printer
+    Please provide message
+    $ fab message_printer:message='Hello world!'
+    Hello world!
