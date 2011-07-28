@@ -54,8 +54,9 @@ DEFAULTS = OrderedDict([
     ('server_name', '%(host)s'),
     ('server_admin', 'admin@%(host)s'),
 
-    ('processes', 1),
-    ('threads', 15),
+    ('apache_processes', 1),
+    ('apache_threads', 15),
+    ('uwsgi_processes', 5),
 
     ('config_templates_lpath_getter', get_config_template_path),
     ('config_templates_pathes', ['config_templates']),

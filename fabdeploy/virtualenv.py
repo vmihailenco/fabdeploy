@@ -22,6 +22,7 @@ class PipInstall(Task):
         return options
 
     @run_as_sudo
+    @inside_virtualenv
     def do(self):
         sudo('pip install %(options)s '
             '--download-cache %(pip_cache_dir)s '
