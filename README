@@ -12,6 +12,11 @@ Running commands
 
 You can pass arguments to commands using following methods:
 
+- Call `setup_fabdeploy()` to setup empty configuration and host `$USER@localhost`. You will be prompted for any missing variable (only once)::
+
+    from fabdeploy.api import setup_fabdeploy
+    setup_fabdeploy()
+
 - Pass global configuration to `setup_conf()`::
 
     from fabdeploy.api import setup_conf
@@ -19,11 +24,13 @@ You can pass arguments to commands using following methods:
     @task
     def staging():
         env.conf = setup_conf(dict(
+            address='user@host',
             db_name='mydb',
             db_user='myuser'
         ))
+        env.hosts = [env.address]
 
-  Then command can be invoked without arguments::
+  Then commands can be invoked without arguments::
 
     fab staging postgres.create_db
 
@@ -37,19 +44,19 @@ Configuration
 You can configure each module and task individually::
 
     {
-        'postgres.db_name': 'postgresql',
-        'mysql.db_name': 'mysql',
-        'mysql.create_db.db_user': 'root',
+        'postgres.db_name': 'postgresql',  # module=postres
+        'mysql.db_name': 'mysql',          # module=mysql
+        'mysql.create_db.db_user': 'root', # module=mysql, task=create_db
     }
 
 Each command can be reconfigured or extended
 ============================================
 
-To upload project using tar archive you can use such command::
+To upload project using tar archive you can use `tar` task with default arguments::
 
     fab staging tar.push
 
-You can also write command to upload only your static dir using tar::
+You can also write command to upload only your static dir using the same task::
 
      from fabdeploy import tar
 
@@ -61,26 +68,30 @@ You can also write command to upload only your static dir using tar::
 Writing your task
 =================
 
-Your task in class-based fabric class except fabdeploy manages configuration for you::
+Your task is class-based fabric class except fabdeploy manages configuration for you::
 
     from fabdeploy.api import Task, conf
-
 
     class MessagePrinter(Task):
         @conf
         def message(self):
-            if self.conf.message:
+            if 'message' in self.conf:
                 return self.conf.message
-            return 'Please provide message'
+            return 'Hi!'
 
         def do(self):
-            puts(self.conf.message)
+            if self.conf.secret == '123':
+                puts(self.conf.message)
+            else:
+                puts('huh?')
 
     message_printer = MessagePrinter()
 
-Then you run this command like this::
+Then you can run this command like this::
 
     $ fab message_printer
-    Please provide message
+    > secret = 123
+    Hi!
     $ fab message_printer:message='Hello world!'
+    > secret = 123
     Hello world!
