@@ -23,7 +23,7 @@ class MultiSourceDict(MutableMapping):
             if hasattr(value, '_is_conf'):
                 self.obj_conf_keys.add(name)
 
-    def get_value(self, name):
+    def get_value(self, name, use_prompt=True):
         if name in self.obj_conf_keys:
             # delete to avoid recursion
             self.obj_conf_keys.remove(name)
@@ -31,9 +31,10 @@ class MultiSourceDict(MutableMapping):
             self.obj_conf_keys.add(name)
             return r
         if name not in self.data:
-            if name.startswith('_'):
-                raise MissingVarException()
-            self.data[name] = prompt('%s = ' % name)
+            if not name.startswith('_') and use_prompt:
+                self.data[name] = prompt('%s = ' % name)
+            else:
+                raise MissingVarException(name)
 
         return self.data[name]
 
@@ -44,6 +45,20 @@ class MultiSourceDict(MutableMapping):
         keys = self.obj_conf_keys.copy()
         keys.update(self.data.keys())
         return keys
+
+    def setdefault(self, key, default=None):
+        try:
+            value = self.get_value(key, use_prompt=False)
+        except MissingVarException:
+            value = default
+            self.set_value(key, value)
+        return value
+
+    def get(self, key, default):
+        try:
+            return self.get_value(key, use_prompt=False)
+        except MissingVarException:
+            return default
 
     def __setitem__(self, key, value):
         self.set_value(key, value)
