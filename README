@@ -30,7 +30,7 @@ You can pass arguments to tasks using following ways:
         ))
         env.hosts = [env.address]
 
-  Then tasks can be run without arguments::
+  Then tasks can be runned without arguments::
 
     fab staging postgres.create_db
 
@@ -48,6 +48,13 @@ You can configure each module and task individually::
         'mysql.db_name': 'mysql',          # module=mysql
         'mysql.create_db.db_user': 'root', # module=mysql, task=create_db
     }
+
+Configuration is stored in task instance variable `self.conf`. Each task has its own copy of configuration. Configuration variables are searched in following places::
+
+- task instance method `VAR()` decorated with `@conf()`;
+- task keyword argument `VAR` (`fab task:foo=bar`);
+- key `VAR` in `env.conf` dict;
+- ask user to provide variable `VAR` using fabric prompt.
 
 Customization
 =============
