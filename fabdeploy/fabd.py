@@ -31,4 +31,7 @@ class Debug(Task):
     def do(self):
         puts(self.conf[self.conf.var])
 
+    def run(self, var):
+        super(Debug, self).run(var=var)
+
 debug = Debug()

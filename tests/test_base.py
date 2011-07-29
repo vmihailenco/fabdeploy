@@ -6,6 +6,8 @@ def test_update_conf():
 
     assert conf.user == 'fabdeploy'
     assert conf.host == 'localhost'
+    assert conf.instance_name == 'fabdeploy'
+
     assert conf.home_dir == '/home/fabdeploy'
     assert conf.src_dir == '/home/fabdeploy/src/fabdeploy'
     assert conf.project_dir == '/home/fabdeploy/src/fabdeploy'

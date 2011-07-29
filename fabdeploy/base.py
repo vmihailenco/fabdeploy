@@ -1,4 +1,5 @@
 import os
+import sys
 import posixpath
 import logging
 from collections import OrderedDict
@@ -42,11 +43,11 @@ def get_django_path(name):
 
 DEFAULTS = OrderedDict([
     ('instance_name', '%(user)s'),
-    ('project_path', ''),
-    ('django_path', ''),
     ('django_path_getter', get_django_path),
     ('django_lpath_getter', get_django_lpath),
 
+    ('project_path', ''),
+    ('django_path', ''),
     ('home_dir', lambda conf: get_home_dir(conf.user)),
     ('src_dir', ['%(home_dir)s', 'src', '%(instance_name)s']),
     ('project_dir', ['%(src_dir)s', '%(project_path)s']),
@@ -56,6 +57,13 @@ DEFAULTS = OrderedDict([
     ('var_dir', ['%(env_dir)s', 'var']),
     ('log_dir', ['%(var_dir)s', 'log']),
     ('backups_dir', ['%(var_dir)s', 'backups']),
+
+    ('project_lpath', ''),
+    ('django_lpath', '%(django_path)s'),
+    ('home_ldir', sys.path[0]),
+    ('src_ldir', '%(home_ldir)s'),
+    ('project_ldir', ['%(src_ldir)s', '%(project_lpath)s']),
+    ('django_ldir', ['%(src_ldir)s', '%(django_lpath)s']),
 
     ('time_format', '%Y.%m.%d-%H.%M'),
     ('sudo_user', 'root'),
