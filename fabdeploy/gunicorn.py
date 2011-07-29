@@ -7,7 +7,6 @@ __all__ = ['push_config']
 
 class PushConfig(Task):
     def do(self):
-        upload_config_template('gunicorn.conf.py', context=self.conf,
-                               use_jinja=True)
+        upload_config_template('gunicorn.conf.py', context=self.conf)
 
 push_config = PushConfig()

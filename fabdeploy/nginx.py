@@ -43,6 +43,7 @@ class PushApacheConfig(PushConfigTask):
     def apache_port(self):
         return apache.PushConfig(conf=self.conf).conf.port
 
+    @conf
     def config_template(self):
         return 'nginx_apache.confi'
 
@@ -50,6 +51,7 @@ push_apache_config = PushApacheConfig()
 
 
 class PushGunicornConfig(PushConfigTask):
+    @conf
     def config_template(self):
         return 'nginx_gunicorn.config'
 
