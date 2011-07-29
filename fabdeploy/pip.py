@@ -1,6 +1,8 @@
+from fabric.api import sudo
+
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
-from fabdeploy.utils import run_as_sudo, sudo
+from fabdeploy.utils import run_as_sudo
 
 
 __all__ = ['install']
