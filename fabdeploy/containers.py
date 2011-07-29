@@ -63,6 +63,9 @@ class MultiSourceDict(MutableMapping):
     def __len__(self):
         return len(self.get_keys())
 
+    def __contains__(self, key):
+        return key in self.get_keys()
+
     def __getattr__(self, name):
         try:
             return self.get_value(name)
