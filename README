@@ -5,12 +5,12 @@ Type::
 
     fab --list
 
-to get list of available commands.
+to get list of available tasks.
 
-Running commands
-================
+Executing tasks
+===============
 
-You can pass arguments to commands using following methods:
+You can pass arguments to tasks using following ways:
 
 - Call `setup_fabdeploy()` to setup empty configuration and host `$USER@localhost`. You will be prompted for any missing variable (only once)::
 
@@ -30,11 +30,11 @@ You can pass arguments to commands using following methods:
         ))
         env.hosts = [env.address]
 
-  Then commands can be invoked without arguments::
+  Then tasks can be run without arguments::
 
     fab staging postgres.create_db
 
-- Pass arguments directly to command::
+- Pass arguments directly to task::
 
     fab staging postgres.create_db:db_name=mydb,db_user=myuser
 
@@ -49,14 +49,14 @@ You can configure each module and task individually::
         'mysql.create_db.db_user': 'root', # module=mysql, task=create_db
     }
 
-Each command can be reconfigured or extended
-============================================
+Customization
+=============
 
 To upload project using tar archive you can use `tar` task with default arguments::
 
     fab staging tar.push
 
-You can also write command to upload only your static dir using the same task::
+You can also write task to upload only your static dir using the same task::
 
      from fabdeploy import tar
 
@@ -87,7 +87,7 @@ Your task is class-based fabric class except fabdeploy manages configuration for
 
     message_printer = MessagePrinter()
 
-Then you can run this command like this::
+Then you can run this task like this::
 
     $ fab message_printer
     > secret = 123
