@@ -7,10 +7,18 @@ from fabric.api import env
 from fabric import network
 from fabric.state import _AttributeDict
 
+from fabdeploy.containers import MultiSourceDict
 from fabdeploy.utils import get_home_dir
 
 
 logger = logging.getLogger('fabdeploy')
+
+
+def setup_fabdeploy():
+    if not hasattr(env, 'conf'):
+        env.conf = MultiSourceDict()
+    if not env.hosts:
+        env.hosts = ['%s@localhost' % os.environ['USER']]
 
 
 def get_config_template_path(name):

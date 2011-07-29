@@ -1,3 +1,7 @@
+import copy
+
+from fabric.api import prompt
+
 import inspect
 from collections import MutableMapping
 
@@ -7,17 +11,17 @@ class MissingVarException(Exception):
 
 
 class MultiSourceDict(MutableMapping):
-    def __init__(self, data, obj=None):
-        self.data = data
+    def __init__(self, data=None, obj=None):
+        if data:
+            self.data = data
+        else:
+            self.data = {}
 
         self.obj = obj
         self.obj_conf_keys = set()
         for name, value in inspect.getmembers(self.obj):
             if hasattr(value, '_is_conf'):
                 self.obj_conf_keys.add(name)
-
-        self.conf_keys = set(self.data.keys())
-        self.conf_keys.update(self.obj_conf_keys)
 
     def get_value(self, name):
         if name in self.obj_conf_keys:
@@ -26,12 +30,20 @@ class MultiSourceDict(MutableMapping):
             r = getattr(self.obj, name)()
             self.obj_conf_keys.add(name)
             return r
-        if name in self.data:
-            return self.data[name]
-        raise MissingVarException()
+        if name not in self.data:
+            if name.startswith('_'):
+                raise MissingVarException()
+            self.data[name] = prompt('%s = ' % name)
+
+        return self.data[name]
 
     def set_value(self, name, value):
         self.data[name] = value
+
+    def get_keys(self):
+        keys = self.obj_conf_keys.copy()
+        keys.update(self.data.keys())
+        return keys
 
     def __setitem__(self, key, value):
         self.set_value(key, value)
@@ -46,10 +58,10 @@ class MultiSourceDict(MutableMapping):
         raise NotImplementedError()
 
     def __iter__(self):
-        return iter(self.conf_keys)
+        return iter(self.get_keys())
 
     def __len__(self):
-        return len(self.conf_keys)
+        return len(self.get_keys())
 
     def __getattr__(self, name):
         try:
@@ -58,10 +70,13 @@ class MultiSourceDict(MutableMapping):
             raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name in ['data', 'obj', 'obj_conf_keys', 'conf_keys']:
+        if name in ['data', 'obj', 'obj_conf_keys']:
             self.__dict__[name] = value
         else:
             self.set_value(name, value)
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 
 def conf(func):
