@@ -64,6 +64,7 @@ DEFAULTS = OrderedDict([
     ('settings', 'settings'),
     ('local_settings_file', 'local_settings.py'),
     ('remote_settings_file', 'prod_settings.py'),
+    ('loglevel', 'INFO'),
 
     ('db_name', '%(instance_name)s'),
     ('db_user', '%(user)s'),

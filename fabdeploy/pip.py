@@ -3,10 +3,10 @@ from fabdeploy.task import Task
 from fabdeploy.utils import run_as_sudo, sudo
 
 
-__all__ = ['pip_install']
+__all__ = ['install']
 
 
-class PipInstall(Task):
+class Install(Task):
     def before_do(self):
         self.conf.setdefault('upgrade', False)
 
@@ -23,4 +23,4 @@ class PipInstall(Task):
             '--download-cache %(pip_cache_dir)s '
             '%(app)s' % self.conf)
 
-pip_install = PipInstall()
+install = Install()

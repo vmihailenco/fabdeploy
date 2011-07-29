@@ -9,7 +9,7 @@ setup(
     author_email='vladimir.webdev@gmail.com',
     url='',
     install_requires=['fabric', 'jinja2'],
-    packages=['fab_deploy'],
+    packages=['fabdeploy'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',
