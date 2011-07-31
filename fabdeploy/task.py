@@ -9,7 +9,9 @@ from fabdeploy.utils import unprefix_conf
 
 
 class Task(BaseTask):
-    def __init__(self, conf=None):
+    def __init__(self, library_conf=None):
+        self.library_conf = library_conf
+
         if self.name == 'undefined':
             self.name = self.generate_name()
 
@@ -45,7 +47,10 @@ class Task(BaseTask):
         self.conf = MultiSourceDict(conf, self)
 
     def run(self, **kwargs):
-        self.setup_conf(kwargs)
+        if self.library_conf is not None:
+            self.conf = self.library_conf.update(kwargs)
+        else:
+            self.setup_conf(kwargs)
 
         self.before_do()
         result = self.do()

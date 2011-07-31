@@ -79,7 +79,11 @@ class MultiSourceDict(MutableMapping):
         return len(self.get_keys())
 
     def __contains__(self, key):
-        return key in self.get_keys()
+        try:
+            self.get_value(key)
+            return True
+        except MissingVarException:
+            return False
 
     def __getattr__(self, name):
         try:

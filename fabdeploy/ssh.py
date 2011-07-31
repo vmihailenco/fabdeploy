@@ -1,19 +1,21 @@
 import re
 import os
+import posixpath
 from collections import defaultdict
 
 from fabric.api import cd, sudo, puts
 from fabric.contrib import files
 from fabric.contrib.files import exists
 
-from fabdeploy.containers import conf
+from fabdeploy.containers import conf, MissingVarException
 from fabdeploy.task import Task
 from fabdeploy.users import list_users
 from fabdeploy.files import read_file
 from fabdeploy.utils import run_as_sudo, get_home_dir, split_lines
 
 
-__all__ = ['push_key', 'list_authorized_files', 'list_keys']
+__all__ = ['push_key', 'list_authorized_files', 'list_keys', 'enable_key',
+           'disable_key']
 
 
 class PushKey(Task):
@@ -40,6 +42,13 @@ class SshManagementTask(Task):
     def before_do(self):
         super(SshManagementTask, self).before_do()
         self.conf.setdefault('exclude_users', [])
+
+    @conf
+    def authorized_file(self):
+        if 'user' in self.conf:
+            return posixpath.join(
+                get_home_dir(self.conf.user), '.ssh', 'authorized_keys')
+        raise MissingVarException()
 
 
 class ListAuthorizedFiles(SshManagementTask):
@@ -99,33 +108,38 @@ class DisableKey(SshManagementTask):
 
     @run_as_sudo
     def do(self):
-        self.disable_key(self.conf.authorized_file, conf.key)
+        if 'authorized_file' in self.conf:
+            self.disable_key(self.conf.authorized_file, self.conf.key)
+        else:
+            authorized_files = list_authorized_files.get_authorized_files(
+                exclude_users=self.conf.exclude_users)
+            for user, authorized_file in authorized_files:
+                self.disable_key(authorized_file, self.conf.key)
 
-
-class DisableKeys(DisableKey):
-    @run_as_sudo
-    def do(self):
-        authorized_files = list_authorized_files.get_authorized_files(
-            exclude_users=self.conf.exclude_users)
-        for user, authorized_file in authorized_files:
-            self.disable_key(authorized_file, self.conf.key)
+disable_key = DisableKey()
 
 
 class EnableKey(SshManagementTask):
-    def disable_key(self, authorized_file, key):
-        regex = '%s' % re.escape(key)
+    def enable_key(self, authorized_file, key):
         backup = '.%s.bak' % self.current_time()
-        files.uncomment(authorized_file, regex, use_sudo=True, backup=backup)
+        regex = '%s' % re.escape(key)
+        commented_key = '#' + regex
+
+        if files.contains(
+                authorized_file, commented_key, exact=True, use_sudo=True):
+            files.uncomment(authorized_file, regex, use_sudo=True,
+                            backup=backup)
+        else:
+            files.append(authorized_file, key, use_sudo=True)
 
     @run_as_sudo
     def do(self):
-        self.enable_key(self.conf.authorized_file, self.conf.key)
+        if 'authorized_file' in self.conf:
+            self.enable_key(self.conf.authorized_file, self.conf.key)
+        else:
+            authorized_files = list_authorized_files.get_authorized_files(
+                exclude_users=self.conf.exclude_users)
+            for user, authorized_file in authorized_files:
+                self.enable_key(authorized_file, conf.key)
 
-
-class EnableKeys(EnableKey):
-    @run_as_sudo
-    def do(self):
-        authorized_files = list_authorized_files.get_authorized_files(
-            exclude_users=self.conf.exclude_users)
-        for user, authorized_file in authorized_files:
-            self.enable_key(authorized_file, conf.key)
+enable_key = EnableKey()
