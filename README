@@ -41,13 +41,42 @@ You can pass arguments to tasks using following ways:
 Configuration
 =============
 
-You can configure each module and task individually::
+There are some conventions how to configure fabdeploy::
 
-    {
-        'postgres.db_name': 'postgresql',  # module=postres
-        'mysql.db_name': 'mysql',          # module=mysql
-        'mysql.create_db.db_user': 'root', # module=mysql, task=create_db
-    }
+- You should use Python OrderedDict, because often order is important::
+
+    from collections import OrderedDict
+
+    BASE_CONF = OrderedDict([
+        ('sudo_user', 'fabdeploy'),
+    ])
+
+- Each value can contain Python formatting::
+
+    BASE_CONF = OrderedDict([
+        ('supervisor.log_dir', '%(log_dir)s/supervisor'),
+    ])
+
+- Remote dirs should have posfix `_dir`. You can and should use task `fabd.mkdirs` to create all remote dirs with one command. It will look like this::
+
+    $ fab fabd.mkdirs
+    mkdir --parents /path/to/dir1 /path/to/dir2 /path/to/dir3
+
+- Local dirs have postfix `_ldir` (similar to Fabric `cd` and `lcd`).
+
+- Dirs (postfix `_dir` and `_ldir`) and pathes (postfix `_path` and `_lpath`) can be lists. This list will be passed to `os.path.join()` or `posixpath.join()`. Previous example can look like this::
+
+    BASE_CONF = OrderedDict([
+        ('supervisor.log_dir', ['%(log_dir)s', 'supervisor']),
+    ])
+
+- You can configure each task individually::
+
+    BASE_CONF = OrderedDict([
+        ('postgres.db_name', 'postgresql_db'), # module=postres
+        ('mysql.db_name', 'mysql_db'),         # module=mysql
+        ('mysql.create_db.db_user', 'root'),   # module=mysql, task=create_db
+    ])
 
 Configuration is stored in task instance variable `self.conf`. Each task has its own copy of configuration. Configuration variables are searched in following places::
 
