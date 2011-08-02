@@ -45,7 +45,7 @@ class SshManagementTask(Task):
 
     @conf
     def authorized_file(self):
-        if 'user' in self.conf:
+        if 'user' in self.conf and self.conf.user:
             return posixpath.join(
                 get_home_dir(self.conf.user), '.ssh', 'authorized_keys')
         raise MissingVarException()
@@ -75,8 +75,9 @@ list_authorized_files = ListAuthorizedFiles()
 
 class ListKeys(SshManagementTask):
     @run_as_sudo
-    def get_keys(self):
-        authorized_files = list_authorized_files.get_authorized_files()
+    def get_keys(self, exclude_users=None):
+        authorized_files = list_authorized_files.get_authorized_files(
+            exclude_users=exclude_users)
 
         keys = defaultdict(list)
         for user, authorized_file in authorized_files:
@@ -101,10 +102,11 @@ list_keys = ListKeys()
 
 class DisableKey(SshManagementTask):
     def disable_key(self, authorized_file, key):
-        regex = re.escape(key)
-        regex = regex.replace('\/', '/')
+        key_regex = re.escape(key)
+        key_regex = key_regex.replace('\/', '/')
+        key_regex = '^%s$' % key_regex
         backup = '.%s.bak' % self.current_time()
-        files.comment(authorized_file, regex, use_sudo=True, backup=backup)
+        files.comment(authorized_file, key_regex, use_sudo=True, backup=backup)
 
     @run_as_sudo
     def do(self):

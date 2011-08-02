@@ -80,7 +80,7 @@ class MultiSourceDict(MutableMapping):
 
     def __contains__(self, key):
         try:
-            self.get_value(key)
+            self.get_value(key, use_prompt=False)
             return True
         except MissingVarException:
             return False

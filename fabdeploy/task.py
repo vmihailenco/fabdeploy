@@ -1,17 +1,18 @@
 import re
 import datetime
+from contextlib import contextmanager
 
-from fabric.api import env
+from fabric.api import env, settings
 from fabric.tasks import Task as BaseTask
+from fabric.network import disconnect_all
 
+from fabdeploy.base import setup_conf
 from fabdeploy.containers import MultiSourceDict, conf
 from fabdeploy.utils import unprefix_conf
 
 
 class Task(BaseTask):
-    def __init__(self, library_conf=None):
-        self.library_conf = library_conf
-
+    def __init__(self):
         if self.name == 'undefined':
             self.name = self.generate_name()
 
@@ -41,18 +42,32 @@ class Task(BaseTask):
         ]
 
     def setup_conf(self, kwargs):
-        conf = env.conf.copy()
-        conf = unprefix_conf(conf, self.get_prefixes())
+        if hasattr(env, 'conf'):
+            conf = env.conf.copy()
+            conf = unprefix_conf(conf, self.get_prefixes())
+        else:
+            conf = {}
         conf.update(kwargs)
         self.conf = MultiSourceDict(conf, self)
 
+    @contextmanager
+    def custom_conf(self, conf):
+        try:
+            old_conf = env.get('conf')
+            env.conf = setup_conf(conf)
+
+            # TODO: add abort_on_prompts=True
+            with settings(host_string=env.conf.host):
+                yield
+        finally:
+            disconnect_all()
+            env.conf = old_conf
+
     def run(self, **kwargs):
-        if self.library_conf is not None:
-            self.conf = self.library_conf.update(kwargs)
-        else:
-            self.setup_conf(kwargs)
+        method = kwargs.pop('_method', 'do')
+        self.setup_conf(kwargs)
 
         self.before_do()
-        result = self.do()
+        result = getattr(self, method)()
         self.after_do(result)
         return result
