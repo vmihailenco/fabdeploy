@@ -113,7 +113,7 @@ def substitute(value, conf):
 
 
 def setup_conf(user_conf):
-    conf = _AttributeDict()
+    conf = MultiSourceDict()
 
     conf.setdefault('address', user_conf['address'])
     user, host, port = network.normalize(conf.address)
