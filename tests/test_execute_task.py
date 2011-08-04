@@ -10,6 +10,8 @@ class HelloTask(Task):
 
 
 def test_execute_task():
-    hello = HelloTask({'sudo_user': 'vladimir'})
-    output = execute_task(hello.run, 'vladimir@localhost')
+    hello = HelloTask()
+    with hello.custom_conf({'address': 'vladimir@localhost',
+                            'sudo_user': 'vladimir'}):
+        output = hello.run()
     assert output == 'Hello'

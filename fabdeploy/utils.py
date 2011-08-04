@@ -104,7 +104,7 @@ def virtualenv():
             # virtualenv is active here
 
     """
-    return prefix('source %s/bin/activate' % env.conf.env_dir)
+    return prefix('source %s/bin/activate' % env.conf.env_path)
 
 
 def inside_virtualenv(func):
@@ -130,7 +130,7 @@ def inside_project(func):
     """
     @wraps(func)
     def inner(*args, **kwargs):
-        with cd(env.conf.project_dir):
+        with cd(env.conf.project_path):
             return func(*args, **kwargs)
     return inner
 
@@ -153,7 +153,7 @@ def inside_django(func):
     """
     @wraps(func)
     def inner(*args, **kwargs):
-        with cd(env.conf.django_dir):
+        with cd(env.conf.django_path):
             with virtualenv():
                 return func(*args, **kwargs)
     return inner
@@ -163,7 +163,7 @@ def upload_config_template(name, to=None, context=None, skip_unexistent=False,
                            **kwargs):
     config_template = env.conf.config_templates_lpath_getter(name)
     if to is None:
-        to = posixpath.join(env.conf.etc_dir, name)
+        to = posixpath.join(env.conf.etc_path, name)
     if context is None:
         context = env.conf
 
@@ -184,7 +184,7 @@ def unprefix_conf(conf, prefixes):
     return conf
 
 
-def get_home_dir(user):
+def get_home_path(user):
     if user == 'root':
         return '/root'
     else:

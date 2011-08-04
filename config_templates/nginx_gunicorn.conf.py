@@ -22,25 +22,25 @@ server {
     }
 
     location /static {
-        root {{ django_dir }};
+        root {{ django_path }};
         autoindex off;
         expires 1M;
     }
 
     location /static/admin {
-        alias {{ env_dir }}/lib/python2.6/site-packages/django/contrib/admin/media;
+        alias {{ env_path }}/lib/python2.6/site-packages/django/contrib/admin/media;
         autoindex off;
         expires 10m;
     }
 
     error_page  500 502 503 504  /50x.html;
     location = /50x.html {
-        root {{ django_dir }}/templates;
+        root {{ django_path }}/templates;
     }
 
     error_page  404  /404.html;
 
     location = /robots.txt {
-        alias {{ django_dir }}/static/robots.txt;
+        alias {{ django_path }}/static/robots.txt;
     }
 }

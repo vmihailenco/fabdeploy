@@ -17,7 +17,7 @@ class Dump(Task):
 
     @conf
     def filepath(self):
-        return posixpath.join(self.conf.backups_dir, self.conf.filename)
+        return posixpath.join(self.conf.backups_path, self.conf.filename)
 
     @conf
     def command(self):

@@ -25,7 +25,7 @@ class PipInstall(Task):
     @inside_virtualenv
     def do(self):
         sudo('pip install %(options)s '
-            '--download-cache %(pip_cache_dir)s '
+            '--download-cache %(pip_cache_path)s '
             '%(app)s' % self.conf)
 
 pip_install = PipInstall()
@@ -46,7 +46,7 @@ class PipInstallReq(PipInstall):
     @inside_virtualenv
     def do(self):
         run('pip install %(options)s '
-            '--download-cache %(pip_cache_dir)s ' % self.conf)
+            '--download-cache %(pip_cache_path)s ' % self.conf)
 
 pip_install_req = PipInstallReq()
 
@@ -57,7 +57,7 @@ class Create(Task):
         return '--no-site-packages'
 
     def do(self):
-        with cd(posixpath.dirname(self.conf.env_dir)):
+        with cd(posixpath.dirname(self.conf.env_path)):
             run('virtualenv %(options)s %(instance_name)s' % self.conf)
 
 create = Create()
@@ -68,6 +68,6 @@ class Remove(Task):
     def do(self):
         for dirname in ['bin', 'include', 'lib', 'src']:
             self.conf.dirname = dirname
-            sudo('rm --recursive --force %(env_dir)s/%(dirname)s' % self.conf)
+            sudo('rm --recursive --force %(env_path)s/%(dirname)s' % self.conf)
 
 remove = Remove()

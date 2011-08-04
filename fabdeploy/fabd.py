@@ -11,7 +11,7 @@ class Mkdirs(Task):
     def do(self):
         dirpathes = []
         for k, v in self.conf.items():
-            if k.endswith('_dir'):
+            if k.endswith('_path'):
                 dirpathes.append(v)
 
         run('mkdir --parents %s' % ' '.join(dirpathes))
@@ -22,7 +22,7 @@ mkdirs = Mkdirs()
 class RemoveSrc(Task):
     @run_as_sudo
     def do(self):
-        sudo('rm --recursive --force %(src_dir)s' % self.conf)
+        sudo('rm --recursive --force %(src_path)s' % self.conf)
 
 remove_src = RemoveSrc()
 

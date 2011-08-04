@@ -62,7 +62,7 @@ class PushConfigs(Task):
             for program in programs:
                 config = '%s.conf' % program
                 from_filepath = 'supervisor/%s' % config
-                to_filepath = '%s/%s' % (self.conf.supervisor_config_dir,
+                to_filepath = '%s/%s' % (self.conf.supervisor_config_path,
                                          config)
                 upload_config_template(from_filepath,
                                        to_filepath,

@@ -11,7 +11,7 @@ from fabdeploy.containers import conf, MissingVarException
 from fabdeploy.task import Task
 from fabdeploy.users import list_users
 from fabdeploy.files import read_file
-from fabdeploy.utils import run_as_sudo, get_home_dir, split_lines
+from fabdeploy.utils import run_as_sudo, get_home_path, split_lines
 
 
 __all__ = ['push_key', 'list_authorized_files', 'list_keys', 'enable_key',
@@ -29,8 +29,8 @@ class PushKey(Task):
         with open(self.conf.pub_key_file, 'rt') as f:
             ssh_key = f.read()
 
-        home_dir = get_home_dir(self.conf.user)
-        with cd(home_dir):
+        home_path = get_home_path(self.conf.user)
+        with cd(home_path):
             sudo('mkdir --parents .ssh')
             files.append('.ssh/authorized_keys', ssh_key, use_sudo=True)
             sudo('chown --recursive %(user)s:%(user)s .ssh' % self.conf)
@@ -47,7 +47,7 @@ class SshManagementTask(Task):
     def authorized_file(self):
         if 'user' in self.conf and self.conf.user:
             return posixpath.join(
-                get_home_dir(self.conf.user), '.ssh', 'authorized_keys')
+                get_home_path(self.conf.user), '.ssh', 'authorized_keys')
         raise MissingVarException()
 
 
@@ -58,7 +58,7 @@ class ListAuthorizedFiles(SshManagementTask):
 
         authorized_files = []
         for user in users:
-            dirpath = get_home_dir(user)
+            dirpath = get_home_path(user)
             authorized_file = '%s/.ssh/authorized_keys' % dirpath
             if exists(authorized_file, use_sudo=True):
                 authorized_files.append((user, authorized_file))

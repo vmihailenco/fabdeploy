@@ -9,7 +9,7 @@ __all__ = ['init', 'push']
 
 class Init(Task):
     def do(self):
-        with cd(self.conf.src_dir):
+        with cd(self.conf.src_path):
             run('git init')
             # allow update current branch
             run('git config receive.denyCurrentBranch ignore')
@@ -27,7 +27,7 @@ class Push(Task):
               'ssh://%(user)s@%(host)s/~%(user)s/src/%(instance_name)s/ '
               '%(branch)s' % self.conf)
 
-        with cd(self.conf.src_dir):
+        with cd(self.conf.src_path):
             run('git checkout --force %(branch)s' % self.conf)
 
 push = Push()

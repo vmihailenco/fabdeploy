@@ -16,7 +16,7 @@ class Push(Task):
         exclude_string = ' '.join(['--exclude "%s"' % pattern
                                    for pattern in excludes])
 
-        if os.path.exists('%(src_dir)s/.excludes' % self.conf):
+        if os.path.exists('%(src_path)s/.excludes' % self.conf):
             exclude_string = '--exclude-from .excludes ' + exclude_string
 
         return exclude_string
@@ -32,15 +32,15 @@ class Push(Task):
     def target_file(self):
         if 'target_file' not in self.conf:
             self.conf.target_file = \
-                '%(target_dir)s/fabdeploy_%(current_time)s.tar' % self.conf
+                '%(target_path)s/fabdeploy_%(current_time)s.tar' % self.conf
         return self.conf.target_file
 
     def do(self):
         local('tar %(exclude_string)s -czf %(src_file)s '
-              '--directory %(src_dir)s .' % self.conf)
+              '--directory %(src_path)s .' % self.conf)
         put(self.conf.src_file, self.conf.target_file)
         local('rm %(src_file)s' % self.conf)
-        with cd(self.conf.target_dir):
+        with cd(self.conf.target_path):
             run('tar -xzf %(target_file)s' % self.conf)
             run('rm %(target_file)s' % self.conf)
 

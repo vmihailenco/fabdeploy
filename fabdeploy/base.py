@@ -9,7 +9,7 @@ from fabric import network
 from fabric.state import _AttributeDict
 
 from fabdeploy.containers import MultiSourceDict
-from fabdeploy.utils import get_home_dir
+from fabdeploy.utils import get_home_path
 
 
 logger = logging.getLogger('fabdeploy')
@@ -33,12 +33,13 @@ def get_pip_req_path(name):
     return posixpath.join(env.conf.pip_req_path, name)
 
 
+# TODO: this should be renamed since in returns relative path for jinja2
 def get_django_lpath(name):
-    return os.path.join(env.conf.django_path, name)
+    return os.path.join(env.conf.django_ldir, name)
 
 
 def get_django_path(name):
-    return posixpath.join(env.conf.django_dir, name)
+    return posixpath.join(env.conf.django_path, name)
 
 
 DEFAULTS = OrderedDict([
@@ -46,24 +47,24 @@ DEFAULTS = OrderedDict([
     ('django_path_getter', get_django_path),
     ('django_lpath_getter', get_django_lpath),
 
-    ('project_path', ''),
-    ('django_path', ''),
-    ('home_dir', lambda conf: get_home_dir(conf.user)),
-    ('src_dir', ['%(home_dir)s', 'src', '%(instance_name)s']),
-    ('project_dir', ['%(src_dir)s', '%(project_path)s']),
-    ('django_dir', ['%(project_dir)s', '%(django_path)s']),
-    ('env_dir', ['%(home_dir)s', 'envs', '%(instance_name)s']),
-    ('etc_dir', ['%(env_dir)s', 'etc']),
-    ('var_dir', ['%(env_dir)s', 'var']),
-    ('log_dir', ['%(var_dir)s', 'log']),
-    ('backups_dir', ['%(var_dir)s', 'backups']),
+    ('project_dir', ''),
+    ('django_dir', ''),
+    ('home_path', lambda conf: get_home_path(conf.user)),
+    ('src_path', ['%(home_path)s', 'src', '%(instance_name)s']),
+    ('project_path', ['%(src_path)s', '%(project_dir)s']),
+    ('django_path', ['%(project_path)s', '%(django_dir)s']),
+    ('env_path', ['%(home_path)s', 'envs', '%(instance_name)s']),
+    ('etc_path', ['%(env_path)s', 'etc']),
+    ('var_path', ['%(env_path)s', 'var']),
+    ('log_path', ['%(var_path)s', 'log']),
+    ('backups_path', ['%(var_path)s', 'backups']),
 
-    ('project_lpath', ''),
-    ('django_lpath', '%(django_path)s'),
-    ('home_ldir', sys.path[0]),
-    ('src_ldir', '%(home_ldir)s'),
-    ('project_ldir', ['%(src_ldir)s', '%(project_lpath)s']),
-    ('django_ldir', ['%(src_ldir)s', '%(django_lpath)s']),
+    ('project_ldir', ''),
+    ('django_ldir', '%(django_dir)s'),
+    ('home_lpath', sys.path[0]),
+    ('src_lpath', '%(home_lpath)s'),
+    ('project_lpath', ['%(src_lpath)s', '%(project_ldir)s']),
+    ('django_lpath', ['%(src_lpath)s', '%(django_ldir)s']),
 
     ('time_format', '%Y.%m.%d-%H.%M'),
     ('sudo_user', 'root'),
@@ -91,13 +92,13 @@ DEFAULTS = OrderedDict([
     ('postgres.db_root_user', 'postgres'),
     ('postgres.db_port', 5432),
 
-    ('pip_cache_dir', ['%(var_dir)s', 'pip']),
+    ('pip_cache_path', ['%(var_path)s', 'pip']),
     ('pip_req_path_getter', get_pip_req_path),
     ('pip_req_path', 'reqs'),
     ('pip_req_name', 'active.txt'),
 
     ('supervisor_prefix', ''),
-    ('supervisor_config_dir', ['%(etc_dir)s', 'supervisor']),
+    ('supervisor_config_path', ['%(etc_path)s', 'supervisor']),
     ('supervisord_config', '/etc/supervisord.conf'),
 ])
 

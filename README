@@ -131,3 +131,79 @@ Then you can run this task like this::
     $ fab message_printer:message='Hello world!'
     > secret = 123
     Hello world!
+
+Fabfile example
+===============
+
+Typical fabfile may look like this::
+
+    from collections import OrderedDict
+    from fabric.api import task, settings
+    from fabdeploy.api import *
+
+
+    setup_fabdeploy()
+
+    BASE_CONF = OrderedDict(
+       ('django_dir', 'projectname'),
+       ('supervisor_programs', [
+           (1000, 'group', ['gunicorn'])
+       ])
+    )
+
+
+    @task
+    def prod():
+        conf = BASE_CONF.copy()
+        conf['address'] = 'user@prodhost.com'
+        env.conf = setup_conf(conf)
+        env.hosts = [env.conf.address]
+
+
+    @task
+    def install():
+        users.create.run()
+        ssh.push_key.run(pub_key_file='~/.ssh/id_rsa.pub')
+
+        system.setup_backports.run()
+        system.install_common_software.run()
+
+        with settings(warn_only=True):
+            postgres.create_role.run()
+            postgres.create_db.run()
+            postgres.grant.run()
+
+        nginx.install.run()
+
+        for app in ['supervisor']:
+            pip.install.run(app=app)
+
+
+    @task
+    def setup():
+        fabd.mkdirs.run()
+
+        gunicorn.push_config.run()
+        nginx.push_gunicorn_config.run()
+        nginx.restart.run()
+
+
+    @task
+    def deploy():
+        fabd.mkdirs.run()
+        postgres.dump.run()
+
+        git.init.run()
+        git.push.run()
+        django.push_settings.run()
+        supervisor.push_configs.run()
+
+        virtualenv.create.run()
+        virtualenv.pip_install.run(app='gunicorn')
+
+        django.syncdb.run()
+        django.migrate.run()
+        django.collectstatic.run()
+
+        supervisor.d.run()
+        supervisor.restart_programs.run()

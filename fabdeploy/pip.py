@@ -22,7 +22,7 @@ class Install(Task):
     @run_as_sudo
     def do(self):
         sudo('pip install %(options)s '
-            '--download-cache %(pip_cache_dir)s '
+            '--download-cache %(pip_cache_path)s '
             '%(app)s' % self.conf)
 
 install = Install()
