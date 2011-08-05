@@ -11,7 +11,7 @@ from fabdeploy.containers import conf, MissingVarException
 from fabdeploy.task import Task
 from fabdeploy.users import list_users
 from fabdeploy.files import read_file
-from fabdeploy.utils import run_as_sudo, get_home_path, split_lines
+from fabdeploy.utils import get_home_path, split_lines
 
 
 __all__ = ['push_key', 'list_authorized_files', 'list_keys', 'enable_key',
@@ -24,7 +24,6 @@ class PushKey(Task):
         pub_key_file = os.path.expanduser(self.conf.pub_key_file)
         return pub_key_file
 
-    @run_as_sudo
     def do(self):
         with open(self.conf.pub_key_file, 'rt') as f:
             ssh_key = f.read()
@@ -52,7 +51,6 @@ class SshManagementTask(Task):
 
 
 class ListAuthorizedFiles(SshManagementTask):
-    @run_as_sudo
     def get_authorized_files(self, exclude_users=None):
         users = list_users.get_users(exclude_users=exclude_users)
 
@@ -74,7 +72,6 @@ list_authorized_files = ListAuthorizedFiles()
 
 
 class ListKeys(SshManagementTask):
-    @run_as_sudo
     def get_keys(self, exclude_users=None):
         authorized_files = list_authorized_files.get_authorized_files(
             exclude_users=exclude_users)
@@ -108,7 +105,6 @@ class DisableKey(SshManagementTask):
         backup = '.%s.bak' % self.current_time()
         files.comment(authorized_file, key_regex, use_sudo=True, backup=backup)
 
-    @run_as_sudo
     def do(self):
         if 'authorized_file' in self.conf:
             self.disable_key(self.conf.authorized_file, self.conf.key)
@@ -134,7 +130,6 @@ class EnableKey(SshManagementTask):
         else:
             files.append(authorized_file, key, use_sudo=True)
 
-    @run_as_sudo
     def do(self):
         if 'authorized_file' in self.conf:
             self.enable_key(self.conf.authorized_file, self.conf.key)

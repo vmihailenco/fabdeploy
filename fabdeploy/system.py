@@ -3,7 +3,6 @@ from fabric.utils import puts, abort
 
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
-from fabdeploy.utils import run_as_sudo
 from fabdeploy import virtualenv
 
 
@@ -14,7 +13,6 @@ class AptitudeUpdate(Task):
     def before_do(self):
         self.conf.setdefault('force', False)
 
-    @run_as_sudo
     def do(self):
         if self.force or not hasattr(env, '_aptitude_updated'):
             sudo('aptitude update')
@@ -27,7 +25,6 @@ class AptitudeInstall(Task):
     def before_do(self):
         self.conf.setdefault('options', '')
 
-    @run_as_sudo
     def do(self):
         aptitude_update.run()
         sudo('aptitude install %(options)s -y %(packages)s' % self.conf)
@@ -55,7 +52,6 @@ class SetupBackports(Task):
         if self.os in BACKPORTS:
             return BACKPORTS[self.os]
 
-    @run_as_sudo
     def do(self):
         if not self.backports:
             puts('Backports are not available for %(os)s' % self.conf)
@@ -89,7 +85,6 @@ EXTRA_PACKAGES = {
 
 
 class InstallCommonSoftware(Task):
-    @run_as_sudo
     def do(self):
         if self.os not in EXTRA_PACKAGES:
             abort('OS %(os)s is unsupported now.' % self.conf)

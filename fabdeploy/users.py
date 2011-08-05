@@ -2,17 +2,14 @@ import os
 
 from fabric.api import settings, sudo, puts
 
-from fabdeploy.containers import conf
 from fabdeploy.task import Task
 from fabdeploy.files import list_files
-from fabdeploy.utils import get_home_path, run_as_sudo
 
 
 __all__ = ['create', 'delete', 'list_users']
 
 
 class Create(Task):
-    @run_as_sudo
     def do(self):
         with settings(warn_only=True):
             sudo('adduser %(user)s --disabled-password --gecos ""' % self.conf)
@@ -21,7 +18,6 @@ create = Create()
 
 
 class Delete(Task):
-    @run_as_sudo
     def do(self):
         sudo('userdel --remove %(user)s' % self.conf)
 

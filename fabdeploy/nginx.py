@@ -2,7 +2,7 @@ from fabric.api import sudo, settings
 
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
-from fabdeploy.utils import run_as_sudo, upload_config_template
+from fabdeploy.utils import upload_config_template
 from fabdeploy import system, apache
 
 
@@ -11,7 +11,6 @@ __all__ = ['install', 'restart', 'push_apache_config',
 
 
 class Install(Task):
-    @run_as_sudo
     def do(self):
         options = {'lenny': '-t lenny-backports'}
         system.aptitude_install.run(packages='nginx',
@@ -30,7 +29,6 @@ class PushConfigTask(Task):
     def enabled_config(self):
         return '/etc/nginx/sites-enabled/%(instance_name)s' % self.conf
 
-    @run_as_sudo
     def do(self):
         upload_config_template(self.conf.config_template, self.conf.config,
             context=self.conf, use_sudo=True)
@@ -67,7 +65,6 @@ push_uwsgi_config = PushUwsgiConfig()
 
 
 class Restart(Task):
-    @run_as_sudo
     def do(self):
         sudo('invoke-rc.d nginx restart')
 

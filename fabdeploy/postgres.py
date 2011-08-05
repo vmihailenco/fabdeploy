@@ -4,7 +4,6 @@ from fabric.api import sudo
 
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
-from fabdeploy.utils import run_as_sudo
 
 
 __all__ = ['dump', 'create_role', 'grant', 'create_db', 'drop_db']
@@ -24,7 +23,6 @@ class Dump(Task):
         return 'pg_dump --host=localhost --username=%(db_user)s ' \
                '--format=c --file=%(filepath)s %(db_name)s' % self.conf
 
-    @run_as_sudo
     def do(self):
         return sudo(self.conf.command)
 
@@ -45,7 +43,6 @@ class Execute(Task):
     def escaped_sql(self):
         return self.conf.sql.replace('"', r'\"')
 
-    @run_as_sudo
     def do(self):
         return sudo(self.conf.command)
 

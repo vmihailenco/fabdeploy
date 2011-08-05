@@ -1,7 +1,6 @@
-from fabric.api import run, sudo, puts
+from fabric.api import run, puts, sudo
 
 from fabdeploy.task import Task
-from fabdeploy.utils import run_as_sudo
 
 
 __all__ = ['mkdirs', 'remove_src', 'debug']
@@ -20,7 +19,6 @@ mkdirs = Mkdirs()
 
 
 class RemoveSrc(Task):
-    @run_as_sudo
     def do(self):
         sudo('rm --recursive --force %(src_path)s' % self.conf)
 

@@ -1,7 +1,7 @@
 from fabric.api import sudo, settings
 
 from fabdeploy.task import Task as BaseTask, conf
-from fabdeploy.utils import upload_config_template, run_as_sudo
+from fabdeploy.utils import upload_config_template
 
 
 __all__ = ['push_config', 'disable_config', 'emperor']
@@ -26,7 +26,6 @@ class Task(BaseTask):
 
 
 class PushConfig(Task):
-    @run_as_sudo
     def do(self):
         sudo('mkdir --parents %s %s' % (self.conf.sites_available_path,
                                        self.conf.sites_enabled_path))
@@ -39,7 +38,6 @@ push_config = PushConfig()
 
 
 class DisableConfig(Task):
-    @run_as_sudo
     def do(self):
         sudo('rm %(enabled_config)s' % self.conf)
 
@@ -47,7 +45,6 @@ disable_config = DisableConfig()
 
 
 class Emperor(Task):
-    @run_as_sudo
     def do(self):
         sudo('%(env_path)s/bin/uwsgi --emperor %(sites_enabled_path)s '
              '--daemonize /var/log/uwsgi-emperor.log' % self.conf)

@@ -4,29 +4,15 @@ from fabric.api import run, sudo, cd
 
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
-from fabdeploy.utils import inside_virtualenv, inside_project, run_as_sudo
+from fabdeploy import pip
+from fabdeploy.utils import inside_virtualenv, inside_project
 
 
 __all__ = ['pip_install', 'pip_install_req', 'create', 'remove']
 
 
-class PipInstall(Task):
-    def before_do(self):
-        self.conf.setdefault('upgrade', False)
-
-    @conf
-    def options(self):
-        options = self.conf.get('options', '')
-        if self.conf.upgrade:
-            options += ' --upgrade'
-        return options
-
-    @run_as_sudo
-    @inside_virtualenv
-    def do(self):
-        sudo('pip install %(options)s '
-            '--download-cache %(pip_cache_path)s '
-            '%(app)s' % self.conf)
+class PipInstall(pip.Install):
+    do = inside_virtualenv(pip.Install.do)
 
 pip_install = PipInstall()
 
@@ -64,7 +50,6 @@ create = Create()
 
 
 class Remove(Task):
-    @run_as_sudo
     def do(self):
         for dirname in ['bin', 'include', 'lib', 'src']:
             self.conf.dirname = dirname

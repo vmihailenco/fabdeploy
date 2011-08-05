@@ -1,6 +1,6 @@
 import posixpath
 
-from fabric.api import run, sudo, settings, hide
+from fabric.api import run, settings, hide, sudo
 
 from fabdeploy.utils import split_lines
 

@@ -2,7 +2,7 @@ from fabric.api import sudo, settings
 
 from fabdeploy.containers import conf
 from fabdeploy.task import Task as BaseTask
-from fabdeploy.utils import run_as_sudo, upload_config_template
+from fabdeploy.utils import upload_config_template
 
 
 __all__ = ['install', 'd', 'ctl', 'shutdown', 'push_configs',
@@ -14,7 +14,6 @@ class Task(BaseTask):
 
 
 class Install(Task):
-    @run_as_sudo
     def do(self):
         sudo('pip install --upgrade supervisor')
 
@@ -22,7 +21,6 @@ install = Install()
 
 
 class D(Task):
-    @run_as_sudo
     def do(self):
         with settings(warn_only=True):
             sudo('supervisord --configuration=%(supervisord_config)s' % self.conf)
@@ -35,7 +33,6 @@ class Ctl(Task):
         super(Ctl, self).before_do()
         self.conf.setdefault('command', '')
 
-    @run_as_sudo
     def do(self):
         sudo('supervisorctl --configuration=%(supervisord_config)s '
              '%(command)s' % self.conf)

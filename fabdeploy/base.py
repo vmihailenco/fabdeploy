@@ -6,16 +6,33 @@ from collections import OrderedDict
 
 from fabric.api import env
 from fabric import network
-from fabric.state import _AttributeDict
 
 from fabdeploy.containers import MultiSourceDict
-from fabdeploy.utils import get_home_path
+from fabdeploy.utils import get_home_path, user
 
 
 logger = logging.getLogger('fabdeploy')
 
 
-def setup_fabdeploy():
+def patch_sudo():
+    from fabric import operations
+    from fabric.operations import _run_command
+
+    def _patched_run_command(*args, **kwargs):
+        sudo = kwargs.get('sudo', False)
+        if sudo:
+            with user(env.conf.sudo_user):
+                return _run_command(*args, **kwargs)
+        else:
+            return _run_command(*args, **kwargs)
+
+    operations._run_command = _patched_run_command
+
+
+def setup_fabdeploy(patch=True):
+    if patch:
+        patch_sudo()
+
     if not hasattr(env, 'conf'):
         env.conf = MultiSourceDict()
     if not env.hosts:

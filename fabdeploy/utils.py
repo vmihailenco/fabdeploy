@@ -60,7 +60,17 @@ def host(host_string):
     env.host_string = old_host_string
 
 
-def run_as(user):
+@contextmanager
+def user(username):
+    old_username, host, port = network.normalize(env.host_string)
+    env.host_string = network.join_host_strings(username, host, port)
+
+    yield
+
+    env.host_string = network.join_host_strings(old_username, host, port)
+
+
+def with_user(username):
     """
     Decorator. Runs fabric command as specified user. It is most useful to
     run commands that require root access to server.
@@ -68,32 +78,10 @@ def run_as(user):
     def decorator(func):
         @wraps(func)
         def inner(*args, **kwargs):
-            old_user, host, port = network.normalize(env.host_string)
-            env.host_string = network.join_host_strings(user, host, port)
-            result = func(*args, **kwargs)
-            env.host_string = network.join_host_strings(old_user, host, port)
-            return result
+            with user(username):
+                return func(*args, **kwargs)
         return inner
     return decorator
-
-
-def run_as_sudo(func):
-    """
-    Decorator. By default all commands are executed as user without
-    sudo access for security reasons. Use this decorator to run fabric
-    command as user with sudo access (:attr:`env.conf.SUDO_USER`)::
-
-        from fabric.api import run
-        from fab_deploy import utils
-
-        @utils.run_as_sudo
-        def aptitude_update():
-            sudo('aptitude update')
-    """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return run_as(env.conf.sudo_user)(func)(*args, **kwargs)
-    return wrapper
 
 
 def virtualenv():
