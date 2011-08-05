@@ -8,7 +8,7 @@ from fabric.api import env
 from fabric import network
 
 from fabdeploy.containers import MultiSourceDict
-from fabdeploy.utils import get_home_path, user
+from fabdeploy.utils import get_home_path, user, detect_os
 
 
 logger = logging.getLogger('fabdeploy')
@@ -133,9 +133,12 @@ def setup_conf(user_conf):
     conf = MultiSourceDict()
 
     conf.setdefault('address', user_conf['address'])
-    user, host, port = network.normalize(conf.address)
-    conf.setdefault('user', user)
+    username, host, _ = network.normalize(conf.address)
+    conf.setdefault('user', username)
     conf.setdefault('host', host)
+
+    if 'os' not in user_conf:
+        conf.setdefault('os', detect_os(conf.address))
 
     merged_conf = DEFAULTS.copy()
     merged_conf.update(user_conf)
