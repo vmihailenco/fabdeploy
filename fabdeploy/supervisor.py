@@ -29,9 +29,9 @@ d = D()
 
 
 class Ctl(Task):
-    def before_do(self):
-        super(Ctl, self).before_do()
-        self.conf.setdefault('command', '')
+    @conf
+    def command(self):
+        return self.conf.get('command', '')
 
     def do(self):
         sudo('supervisorctl --configuration=%(supervisord_config)s '
