@@ -6,7 +6,7 @@ from fabdeploy.containers import conf
 from fabdeploy.task import Task
 
 
-__all__ = ['dump', 'create_role', 'grant', 'create_db', 'drop_db']
+__all__ = ['dump', 'create_role', 'drop_role', 'grant', 'create_db', 'drop_db']
 
 
 class Dump(Task):
@@ -61,6 +61,16 @@ class CreateRole(Execute):
 create_role = CreateRole()
 
 
+class DropRole(Execute):
+    SQL_DROP_ROLE = "DROP ROLE %(db_user)s;"
+
+    @conf
+    def sql(self):
+        return self.SQL_DROP_ROLE % self.conf
+
+drop_role = DropRole()
+
+
 class Grant(Execute):
     SQL_GRANT = """
     GRANT ALL PRIVILEGES ON DATABASE %(db_name)s TO %(db_user)s;
@@ -86,9 +96,7 @@ create_db = CreateDb()
 
 
 class DropDb(Execute):
-    SQL_DROP_DB = """
-    DROP DATABASE %(db_name)s;
-    """.strip()
+    SQL_DROP_DB = "DROP DATABASE %(db_name)s;"
 
     @conf
     def sql(self):

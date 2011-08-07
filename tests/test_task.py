@@ -54,4 +54,4 @@ def test_example_task_kwargs():
                          var2='kwarg',
                          var3='kwarg',
                          var4='kwarg')
-    assert r == ['cls', 'kwarg', 'kwarg', 'kwarg']
+    assert r == ['kwarg', 'kwarg', 'kwarg', 'kwarg']

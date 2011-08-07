@@ -12,7 +12,7 @@ Executing tasks
 
 You can pass arguments to tasks using following ways:
 
-- Call `setup_fabdeploy()` to setup empty configuration and host `$USER@localhost`. You will be prompted for any missing variable (only once)::
+- Call `setup_fabdeploy()` to setup empty configuration and host `$USER@localhost`. You will be prompted for any missing variable (once per task)::
 
     from fabdeploy.api import setup_fabdeploy
     setup_fabdeploy()
@@ -80,10 +80,10 @@ There are some conventions how to configure fabdeploy::
 
 Configuration is stored in task instance variable `self.conf`. Each task has its own copy of configuration. Configuration variables are searched in following places::
 
-- task instance method `VAR()` decorated with `@conf()`;
-- task keyword argument `VAR` (`fab task:foo=bar`);
-- key `VAR` in `env.conf` dict;
-- ask user to provide variable `VAR` using fabric prompt.
+- task keyword argument `var` (`fab task:foo=bar`);
+- task instance method `var()` decorated with `@conf()`;
+- key `var` in `env.conf` dict;
+- ask user to provide variable `var` using fabric prompt.
 
 Customization
 =============

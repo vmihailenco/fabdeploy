@@ -11,39 +11,44 @@ class MissingVarException(Exception):
 
 
 class MultiSourceDict(MutableMapping):
-    def __init__(self, data=None, obj=None):
-        if data:
-            self.data = data
-        else:
-            self.data = {}
+    def __init__(self, conf=None, task=None, kwargs=None, name=None):
+        self.name = name or ''
+        self.conf = conf or {}
 
-        self.obj = obj
-        self.obj_conf_keys = set()
-        for name, value in inspect.getmembers(self.obj):
+        self.task = task
+        self.task_conf_keys = set()
+        for name, value in inspect.getmembers(self.task):
             if hasattr(value, '_is_conf'):
-                self.obj_conf_keys.add(name)
+                self.task_conf_keys.add(name)
+
+        self.kwargs = kwargs or {}
 
     def get_value(self, name, use_prompt=True):
-        if name in self.obj_conf_keys:
+        if name in self.kwargs:
+            return self.kwargs[name]
+
+        if name in self.task_conf_keys:
             # delete to avoid recursion
-            self.obj_conf_keys.remove(name)
-            r = getattr(self.obj, name)()
-            self.obj_conf_keys.add(name)
+            self.task_conf_keys.remove(name)
+            r = getattr(self.task, name)()
+            self.task_conf_keys.add(name)
             return r
-        if name not in self.data:
+
+        if name not in self.conf:
             if not name.startswith('_') and use_prompt:
-                self.data[name] = prompt('%s = ' % name)
+                self.conf[name] = prompt('%s.%s = ' % (self.name, name))
             else:
                 raise MissingVarException(name)
 
-        return self.data[name]
+        return self.conf[name]
 
     def set_value(self, name, value):
-        self.data[name] = value
+        self.conf[name] = value
 
     def get_keys(self):
-        keys = self.obj_conf_keys.copy()
-        keys.update(self.data.keys())
+        keys = self.task_conf_keys.copy()
+        keys.update(self.conf.keys())
+        keys.update(self.kwargs.keys())
         return keys
 
     def setdefault(self, key, default=None):
@@ -92,7 +97,7 @@ class MultiSourceDict(MutableMapping):
             raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name in ['data', 'obj', 'obj_conf_keys']:
+        if name in ['name', 'conf', 'task', 'task_conf_keys', 'kwargs']:
             self.__dict__[name] = value
         else:
             self.set_value(name, value)

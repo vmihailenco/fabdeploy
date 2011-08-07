@@ -106,6 +106,7 @@ class DisableKey(SshManagementTask):
         files.comment(authorized_file, key_regex, use_sudo=True, backup=backup)
 
     def do(self):
+        print 'XXXXXXXXXxx'
         if 'authorized_file' in self.conf:
             self.disable_key(self.conf.authorized_file, self.conf.key)
         else:

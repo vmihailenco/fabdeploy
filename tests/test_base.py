@@ -2,7 +2,10 @@ from fabdeploy.base import setup_conf
 
 
 def test_update_conf():
-    conf = setup_conf(dict(address='fabdeploy@localhost'))
+    conf = setup_conf(dict(
+        address='fabdeploy@localhost',
+        os=None,
+    ))
 
     assert conf.user == 'fabdeploy'
     assert conf.host == 'localhost'

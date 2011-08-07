@@ -3,11 +3,10 @@ import posixpath
 from functools import wraps
 from contextlib import contextmanager
 
-from fabric.api import env, cd, run, prefix, abort, settings
+from fabric.api import env, cd, run, prefix, abort
 from fabric import network
 from fabric.utils import puts
 from fabric.operations import _handle_failure
-from fabric.network import disconnect_all
 from fabric.contrib.files import upload_template
 
 
@@ -82,6 +81,16 @@ def with_user(username):
                 return func(*args, **kwargs)
         return inner
     return decorator
+
+
+@contextmanager
+def sudo_user():
+    with user(env.conf.sudo_user):
+        yield
+
+
+def with_sudo_user():
+    return with_user(env.conf.sudo_user)
 
 
 def virtualenv():
@@ -195,12 +204,3 @@ class cached_property(object):
 
         obj.__dict__[self.func.__name__] = value = self.func(obj)
         return value
-
-
-def execute_task(func, host, *args, **kwargs):
-    """Execute task in non-fabric environment (library usage)"""
-    try:
-        with settings(host_string=host, abort_on_prompts=True):
-            return func(*args, **kwargs)
-    finally:
-        disconnect_all()

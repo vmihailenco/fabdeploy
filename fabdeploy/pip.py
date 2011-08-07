@@ -2,9 +2,10 @@ from fabric.api import sudo
 
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
+from fabdeploy.utils import get_home_path, upload_config_template
 
 
-__all__ = ['install']
+__all__ = ['install', 'setup_conf']
 
 
 class Install(Task):
@@ -24,3 +25,20 @@ class Install(Task):
             '%(app)s' % self.conf)
 
 install = Install()
+
+
+class SetupConf(Task):
+    """Sets up pip.conf file"""
+
+    @conf
+    def home_path(self):
+        return get_home_path(self.conf.user)
+
+    def do(self):
+        sudo('mkdir --parents %(home_path)s/.pip' % self.conf)
+        upload_config_template('pip.conf',
+                               '%(home_path)s/.pip/pip.conf' % self.conf,
+                               use_sudo=True)
+        sudo('chown --recursive %(user)s:%(user)s %(home_path)s' % self.conf)
+
+setup_conf = SetupConf()

@@ -1,7 +1,6 @@
 from fabric.api import run
 
 from fabdeploy.task import Task
-from fabdeploy.utils import execute_task
 
 
 class HelloTask(Task):
@@ -11,7 +10,8 @@ class HelloTask(Task):
 
 def test_execute_task():
     hello = HelloTask()
-    with hello.custom_conf({'address': 'vladimir@localhost',
-                            'sudo_user': 'vladimir'}):
+    with hello.tmp_conf({'address': 'vladimir@localhost',
+                         'sudo_user': 'vladimir'}):
+#                        abort_on_prompts=True):
         output = hello.run()
     assert output == 'Hello'

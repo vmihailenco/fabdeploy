@@ -1,3 +1,4 @@
 nose
 fabric
 jinja2
+ordereddict

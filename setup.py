@@ -7,8 +7,7 @@ setup(
     description='Django fabdeploy plus',
     author='Vladimir Mihailenco',
     author_email='vladimir.webdev@gmail.com',
-    url='',
-    install_requires=['fabric', 'jinja2'],
+    url='https://bitbucket.org/vladimir_webdev/fabdeploy',
     packages=['fabdeploy'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

@@ -2,41 +2,29 @@ import os
 import sys
 import posixpath
 import logging
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 from fabric.api import env
 from fabric import network
+from fabric.state import _AttributeDict
 
 from fabdeploy.containers import MultiSourceDict
-from fabdeploy.utils import get_home_path, user, detect_os
+from fabdeploy.utils import get_home_path, detect_os
 
 
 logger = logging.getLogger('fabdeploy')
 
 
-def patch_sudo():
-    from fabric import operations
-    from fabric.operations import _run_command
-
-    def _patched_run_command(*args, **kwargs):
-        sudo = kwargs.get('sudo', False)
-        if sudo:
-            with user(env.conf.sudo_user):
-                return _run_command(*args, **kwargs)
-        else:
-            return _run_command(*args, **kwargs)
-
-    operations._run_command = _patched_run_command
-
-
-def setup_fabdeploy(patch=True):
-    if patch:
-        patch_sudo()
-
+def setup_fabdeploy():
     if not hasattr(env, 'conf'):
-        env.conf = MultiSourceDict()
+        env.conf = MultiSourceDict(dict(
+            host='%s@localhost' % os.environ['USER'],
+        ))
     if not env.hosts:
-        env.hosts = ['%s@localhost' % os.environ['USER']]
+        env.hosts = [env.conf.host]
 
 
 def get_config_template_path(name):
@@ -129,19 +117,25 @@ def substitute(value, conf):
     return value
 
 
-def setup_conf(user_conf):
-    conf = MultiSourceDict()
+def process_conf(user_conf, use_defaults=True):
+    user_conf = _AttributeDict(user_conf or {})
+    conf = _AttributeDict()
 
-    conf.setdefault('address', user_conf['address'])
-    username, host, _ = network.normalize(conf.address)
-    conf.setdefault('user', username)
-    conf.setdefault('host', host)
+    if 'address' in user_conf:
+        conf.setdefault('address', user_conf.address)
+        username, host, _ = network.normalize(conf.address)
+        conf.setdefault('user', username)
+        conf.setdefault('host', host)
 
-    if 'os' not in user_conf:
+    if 'os' not in user_conf and 'address' in conf:
         conf.setdefault('os', detect_os(conf.address))
 
-    merged_conf = DEFAULTS.copy()
-    merged_conf.update(user_conf)
+    if use_defaults:
+        merged_conf = DEFAULTS.copy()
+        merged_conf.update(user_conf)
+    else:
+        merged_conf = user_conf
+
     for k, v in merged_conf.items():
         if callable(v) and not k.endswith('_getter'):
             v = v(conf)
@@ -160,3 +154,7 @@ def setup_conf(user_conf):
         conf.setdefault(k, v)
 
     return conf
+
+
+def setup_conf(user_conf):
+    return MultiSourceDict(process_conf(user_conf))
