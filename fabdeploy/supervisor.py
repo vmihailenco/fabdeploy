@@ -6,7 +6,7 @@ from fabdeploy.utils import upload_config_template
 
 
 __all__ = ['install', 'd', 'ctl', 'shutdown', 'update', 'push_configs',
-           'stop_programs', 'restart_programs']
+           'stop_program', 'restart_program']
 
 
 class Task(BaseTask):
@@ -69,49 +69,50 @@ class PushConfigs(Task):
                                    self.conf.supervisord_config,
                                    context=self.conf)
 
-        for _, _, programs in self.conf.supervisor_programs:
-            for program in programs:
-                config = '%s.conf' % program
-                from_filepath = 'supervisor/%s' % config
-                to_filepath = '%s/%s' % (self.conf.supervisor_config_path,
-                                         config)
-                upload_config_template(from_filepath,
-                                       to_filepath,
-                                       context=self.conf)
+        for program in self.conf.supervisor_programs:
+            config = '%s.conf' % program
+            from_filepath = 'supervisor/%s' % config
+            to_filepath = '%s/%s' % (self.conf.supervisor_config_path,
+                                     config)
+            upload_config_template(from_filepath,
+                                   to_filepath,
+                                   context=self.conf)
 
 push_configs = PushConfigs()
 
 
-class ProgramsCommand(Task):
-    def get_group_command(self, group):
-        self.conf.group = group
-        return '%(command)s %(supervisor_prefix)s%(group)s:' % self.conf
-
-    def get_program_command(self, program):
+class ProgramCommand(Task):
+    def get_command(self, program):
         self.conf.program = program
         return '%(command)s %(supervisor_prefix)s%(program)s' % self.conf
 
     def do(self):
-        for _, group, programs in self.conf.supervisor_programs:
-            for program in programs:
-                ctl.run(command=self.get_program_command(program))
+        if 'program' in self.conf and self.conf.program:
+            ctl.run(command=self.get_command(self.conf.program))
+            return
+
+        for program in self.conf.supervisor_programs:
+            ctl.run(command=self.get_command(program))
+
+    def run(self, program='', **kwargs):
+        return super(ProgramCommand, self).run(program=program, **kwargs)
 
 
-class RestartPrograms(ProgramsCommand):
+class RestartProgram(ProgramCommand):
     """Restart ``supervisor_programs``."""
 
     @conf
     def command(self):
         return 'restart'
 
-restart_programs = RestartPrograms()
+restart_program = RestartProgram()
 
 
-class StopPrograms(ProgramsCommand):
+class StopProgram(ProgramCommand):
     """Stop ``supervisor_programs``."""
 
     @conf
     def command(self):
         return 'stop'
 
-stop_programs = StopPrograms()
+stop_program = StopProgram()

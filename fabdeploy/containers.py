@@ -56,7 +56,7 @@ class MultiSourceDict(MutableMapping):
         return self.conf[name]
 
     def set_value(self, name, value):
-        self.conf[name] = value
+        self.kwargs[name] = value
 
     def get_keys(self):
         keys = self.task_conf_keys.copy()

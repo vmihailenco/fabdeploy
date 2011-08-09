@@ -12,12 +12,12 @@ Executing tasks
 
 You can pass arguments to tasks using following ways:
 
-- Call `setup_fabdeploy()` to setup empty configuration and host `$USER@localhost`. You will be prompted for any missing variable (once per task)::
+- Call ``setup_fabdeploy()`` to setup empty configuration and host ``$USER@localhost``. You will be prompted for any missing variable (once per task)::
 
     from fabdeploy.api import setup_fabdeploy
     setup_fabdeploy()
 
-- Pass global configuration to `setup_conf()`::
+- Pass global configuration to ``setup_conf()``::
 
     from fabdeploy.api import setup_conf
 
@@ -57,14 +57,14 @@ There are some conventions how to configure fabdeploy:
         ('supervisor.log_dir', '%(log_dir)s/supervisor'),
     ])
 
-- Remote dirs should have posfix `_dir`. You can and should use task `fabd.mkdirs` to create all remote dirs with one command. It will look like this::
+- Remote dirs should have posfix ``_dir``. You can and should use task ``fabd.mkdirs`` to create all remote dirs with one command. It will look like this::
 
     $ fab fabd.mkdirs
     mkdir --parents /path/to/dir1 /path/to/dir2 /path/to/dir3
 
-- Local dirs have postfix `_ldir` (similar to Fabric `cd` and `lcd`).
+- Local dirs have postfix ``_ldir`` (similar to Fabric ``cd`` and ``lcd``).
 
-- Dirs (postfix `_dir` and `_ldir`) and pathes (postfix `_path` and `_lpath`) can be lists. This list will be passed to `os.path.join()` or `posixpath.join()`. Previous example can look like this::
+- Dirs (postfix ``_dir`` and ``_ldir``) and pathes (postfix ``_path`` and ``_lpath``) can be lists. This list will be passed to ``os.path.join()`` or ``posixpath.join()``. Previous example can look like this::
 
     BASE_CONF = OrderedDict([
         ('supervisor.log_dir', ['%(log_dir)s', 'supervisor']),
@@ -78,17 +78,17 @@ There are some conventions how to configure fabdeploy:
         ('mysql.create_db.db_user', 'root'),   # module=mysql, task=create_db
     ])
 
-Configuration is stored in task instance variable `self.conf`. Each task has its own copy of configuration. Configuration variables are searched in following places::
+Configuration is stored in task instance variable ``self.conf``. Each task has its own copy of configuration. Configuration variables are searched in following places:
 
-- task keyword argument `var` (`fab task:foo=bar`);
-- task instance method `var()` decorated with `@conf()`;
-- key `var` in `env.conf` dict;
-- ask user to provide variable `var` using fabric prompt.
+- task keyword argument ``var`` (``fab task:foo=bar``);
+- task instance method ``var()`` decorated with ``@conf()``;
+- key ``var`` in ``env.conf`` dict;
+- ask user to provide variable ``var`` using fabric prompt.
 
 Customization
 =============
 
-To upload project using tar archive you can use `tar` task with default arguments::
+To upload project using tar archive you can use ``tar`` task with default arguments::
 
     fab staging tar.push
 
