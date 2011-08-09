@@ -41,7 +41,7 @@ You can pass arguments to tasks using following ways:
 Configuration
 =============
 
-There are some conventions how to configure fabdeploy::
+There are some conventions how to configure fabdeploy:
 
 - You should use Python OrderedDict, because often order is important::
 
