@@ -1,10 +1,15 @@
 from distutils.core import setup
 
 
+version = __import__('fabdeploy').get_version()
+readme = open('README').read()
+
+
 setup(
     name='django-fabdeploy-plus',
-    version='0.1.0',
-    description='Django fabdeploy plus',
+    version=version.replace(' ', '-'),
+    description='Fabric deployment for Django',
+    long_description=readme,
     author='Vladimir Mihailenco',
     author_email='vladimir.webdev@gmail.com',
     url='https://bitbucket.org/vladimir_webdev/fabdeploy',
