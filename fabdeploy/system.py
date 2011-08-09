@@ -3,18 +3,19 @@ from fabric.utils import puts, abort
 
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
-from fabdeploy import virtualenv
+from fabdeploy import pip
 
 
 __all__ = ['aptitude_install', 'setup_backports', 'install_common_software']
 
 
 class AptitudeUpdate(Task):
-    def before_do(self):
-        self.conf.setdefault('force', False)
+    @conf
+    def force(self):
+        return False
 
     def do(self):
-        if self.force or not hasattr(env, '_aptitude_updated'):
+        if self.conf.force or not hasattr(env, '_aptitude_updated'):
             sudo('aptitude update')
             env._aptitude_updated = True
 
@@ -22,8 +23,9 @@ aptitude_update = AptitudeUpdate()
 
 
 class AptitudeInstall(Task):
-    def before_do(self):
-        self.conf.setdefault('options', '')
+    @conf
+    def options(self):
+        return 'options'
 
     def do(self):
         aptitude_update.run()
@@ -49,8 +51,8 @@ BACKPORTS = {
 class SetupBackports(Task):
     @conf
     def backports(self):
-        if self.os in BACKPORTS:
-            return BACKPORTS[self.os]
+        if self.conf.os in BACKPORTS:
+            return BACKPORTS[self.conf.os]
 
     def do(self):
         if not self.backports:
@@ -86,21 +88,21 @@ EXTRA_PACKAGES = {
 
 class InstallCommonSoftware(Task):
     def do(self):
-        if self.os not in EXTRA_PACKAGES:
+        if self.conf.os not in EXTRA_PACKAGES:
             abort('OS %(os)s is unsupported now.' % self.conf)
             return
 
-        packages = ' '.join(COMMON_PACKAGES + EXTRA_PACKAGES[self.os])
+        packages = ' '.join(COMMON_PACKAGES + EXTRA_PACKAGES[self.conf.os])
         aptitude_install.run(packages=packages)
 
         vcs_options = {
             'lenny': '-t lenny-backports',
         }
         aptitude_install.run(packages='mercurial git git-core',
-                             options=vcs_options.get(self.os, ''))
+                             options=vcs_options.get(self.conf.os, ''))
         aptitude_install.run(packages='bzr', options='--without-recommends')
 
-        sudo('easy_install -U pip')
-        virtualenv.pip_install.run(app='virtualenv', upgrade=True)
+        sudo('easy_install --upgrade pip')
+        pip.install.run(app='virtualenv', upgrade=True)
 
 install_common_software = InstallCommonSoftware()

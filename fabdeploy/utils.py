@@ -134,16 +134,16 @@ def inside_project(func):
 
 def inside_django(func):
     """
-    Decorator. Use it to perform actions inside remote project dir
+    Decorator. Use it to perform actions inside remote django dir
     (that's a folder where :file:`manage.py` resides) with
     virtualenv activated::
 
         from fabric.api import *
-        from fab_deploy.utils import inside_project
+        from fab_deploy.utils import inside_django
 
-        @inside_project
+        @inside_django
         def cleanup():
-            # the current dir is a project source dir and
+            # the current dir is a django source dir and
             # virtualenv is activated
             run('python manage.py cleanup')
 

@@ -39,6 +39,6 @@ class SetupConf(Task):
         upload_config_template('pip.conf',
                                '%(home_path)s/.pip/pip.conf' % self.conf,
                                use_sudo=True)
-        sudo('chown --recursive %(user)s:%(user)s %(home_path)s' % self.conf)
+        sudo('chown --recursive %(user)s:%(user)s %(home_path)s/.pip' % self.conf)
 
 setup_conf = SetupConf()

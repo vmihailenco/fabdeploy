@@ -5,7 +5,7 @@ from fabdeploy.task import Task as BaseTask
 from fabdeploy.utils import upload_config_template
 
 
-__all__ = ['install', 'd', 'ctl', 'shutdown', 'push_configs',
+__all__ = ['install', 'd', 'ctl', 'shutdown', 'update', 'push_configs',
            'stop_programs', 'restart_programs']
 
 
@@ -29,6 +29,8 @@ d = D()
 
 
 class Ctl(Task):
+    """Perform ``command`` or show supervisor console."""
+
     @conf
     def command(self):
         return self.conf.get('command', '')
@@ -41,6 +43,8 @@ ctl = Ctl()
 
 
 class Shutdown(Ctl):
+    """Shutdown supervisord."""
+
     @conf
     def command(self):
         return 'shutdown'
@@ -48,7 +52,17 @@ class Shutdown(Ctl):
 shutdown = Shutdown()
 
 
+class Update(Ctl):
+    @conf
+    def command(self):
+        return 'update'
+
+update = Update()
+
+
 class PushConfigs(Task):
+    """Push configs for ``supervisor_programs``."""
+
     def do(self):
         if 'supervisord_config_template' in self.conf:
             upload_config_template(self.conf.supervisord_config_template,
@@ -79,14 +93,13 @@ class ProgramsCommand(Task):
 
     def do(self):
         for _, group, programs in self.conf.supervisor_programs:
-            if group:
-                ctl.run(command=self.get_group_command(group))
-                continue
             for program in programs:
                 ctl.run(command=self.get_program_command(program))
 
 
 class RestartPrograms(ProgramsCommand):
+    """Restart ``supervisor_programs``."""
+
     @conf
     def command(self):
         return 'restart'
@@ -95,6 +108,8 @@ restart_programs = RestartPrograms()
 
 
 class StopPrograms(ProgramsCommand):
+    """Stop ``supervisor_programs``."""
+
     @conf
     def command(self):
         return 'stop'

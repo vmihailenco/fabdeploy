@@ -20,12 +20,11 @@ __all__ = ['push_key', 'list_authorized_files', 'list_keys', 'enable_key',
 
 class PushKey(Task):
     @conf
-    def pub_key_file(self):
-        pub_key_file = os.path.expanduser(self.conf.pub_key_file)
-        return pub_key_file
+    def abs_pub_key_file(self):
+        return os.path.expanduser(self.conf.pub_key_file)
 
     def do(self):
-        with open(self.conf.pub_key_file, 'rt') as f:
+        with open(self.conf.abs_pub_key_file, 'rt') as f:
             ssh_key = f.read()
 
         home_path = get_home_path(self.conf.user)
@@ -106,7 +105,6 @@ class DisableKey(SshManagementTask):
         files.comment(authorized_file, key_regex, use_sudo=True, backup=backup)
 
     def do(self):
-        print 'XXXXXXXXXxx'
         if 'authorized_file' in self.conf:
             self.disable_key(self.conf.authorized_file, self.conf.key)
         else:

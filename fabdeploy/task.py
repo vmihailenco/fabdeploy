@@ -58,8 +58,7 @@ class Task(BaseTask):
     @contextmanager
     def tmp_conf(self, conf, **fabric_settings):
         try:
-            old_conf = env.get('conf')
-            old_kwargs = {}
+            old_kwargs = None
 
             if isinstance(conf, MultiSourceDict):
                 self.conf = conf
@@ -71,17 +70,16 @@ class Task(BaseTask):
                     old_kwargs = self.conf.kwargs
                     self.conf.kwargs.update(conf)
 
-            env.conf = self.conf
             with settings(host_string=env.conf.get('address', ''),
                           **fabric_settings):
                 yield
         finally:
-            # can be already None in case of nested managers
-            if self.conf:
+            if old_kwargs is not None:
                 # conf can be reused, but kwargs should not
                 self.conf.kwargs = old_kwargs
+            else:
+                self.conf.kwargs = {}
                 self.conf = None
-            env.conf = old_conf
 
     def run(self, **kwargs):
         with self.tmp_conf(kwargs):

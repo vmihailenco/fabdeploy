@@ -1,9 +1,21 @@
 import copy
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
-from fabric.api import prompt
+from fabric.api import env, prompt
 
 import inspect
 from collections import MutableMapping
+
+
+class AttributeDict(OrderedDict):
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
 
 
 class MissingVarException(Exception):
@@ -37,6 +49,7 @@ class MultiSourceDict(MutableMapping):
         if name not in self.conf:
             if not name.startswith('_') and use_prompt:
                 self.conf[name] = prompt('%s.%s = ' % (self.name, name))
+                env.conf[name] = self.conf[name]
             else:
                 raise MissingVarException(name)
 

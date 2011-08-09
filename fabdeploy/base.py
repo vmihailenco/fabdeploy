@@ -9,9 +9,8 @@ except ImportError:
 
 from fabric.api import env
 from fabric import network
-from fabric.state import _AttributeDict
 
-from fabdeploy.containers import MultiSourceDict
+from fabdeploy.containers import MultiSourceDict, AttributeDict
 from fabdeploy.utils import get_home_path, detect_os
 
 
@@ -19,6 +18,8 @@ logger = logging.getLogger('fabdeploy')
 
 
 def setup_fabdeploy():
+    sys.path[0:0] = os.path.dirname(sys.path[0])
+
     if not hasattr(env, 'conf'):
         env.conf = MultiSourceDict(dict(
             host='%s@localhost' % os.environ['USER'],
@@ -47,12 +48,23 @@ def get_django_path(name):
     return posixpath.join(env.conf.django_path, name)
 
 
+try:
+    import multiprocessing
+except ImportError:
+    CPU_COUNT = 4
+else:
+    CPU_COUNT = multiprocessing.cpu_count()
+
+
 DEFAULTS = OrderedDict([
     ('instance_name', '%(user)s'),
     ('django_path_getter', get_django_path),
     ('django_lpath_getter', get_django_lpath),
 
+    # directory name inside src_path that contains project
+    # this is useful if your project is not in git/hg repo root dir
     ('project_dir', ''),
+    # directory name that contains manage.py file (django project root)
     ('django_dir', ''),
     ('home_path', lambda conf: get_home_path(conf.user)),
     ('src_path', ['%(home_path)s', 'src', '%(instance_name)s']),
@@ -72,19 +84,25 @@ DEFAULTS = OrderedDict([
     ('django_lpath', ['%(src_lpath)s', '%(django_ldir)s']),
 
     ('time_format', '%Y.%m.%d-%H.%M'),
+    # user that have sudo right
+    # this is useful, because usually deploy user don't have sudo right
     ('sudo_user', 'root'),
     ('server_name', '%(host)s'),
     ('server_admin', 'admin@%(host)s'),
 
     ('apache_processes', 1),
-    ('apache_threads', 15),
-    ('uwsgi_processes', 5),
+    ('apache_threads', CPU_COUNT * 2 + 1),
+    ('uwsgi_processes', CPU_COUNT * 2 + 1),
+    ('gunicorn_workers', CPU_COUNT * 2 + 1),
 
     ('config_templates_lpath_getter', get_config_template_path),
     ('config_templates_pathes', ['config_templates']),
 
+    # django settings: manage.py --settings=%(settings)s
     ('settings', 'settings'),
+    # env specific settings file, that is imported in %(settings)s
     ('local_settings_file', 'local_settings.py'),
+    # %(local_settings_file)s will be replaced with this file
     ('remote_settings_file', 'prod_settings.py'),
     ('loglevel', 'INFO'),
 
@@ -92,7 +110,7 @@ DEFAULTS = OrderedDict([
     ('db_user', '%(user)s'),
     ('db_password', '%(user)s'),
     ('db_host', 'localhost'),
-    ('mysql.db_root_user', 'postgres'),
+    ('mysql.db_root_user', 'root'),
     ('mysql.db_port', 3306),
     ('postgres.db_root_user', 'postgres'),
     ('postgres.db_port', 5432),
@@ -102,6 +120,8 @@ DEFAULTS = OrderedDict([
     ('pip_req_path', 'reqs'),
     ('pip_req_name', 'active.txt'),
 
+    # prefix for supervisor programs/groups
+    # useful when there several projects deployed on one server
     ('supervisor_prefix', ''),
     ('supervisor_config_path', ['%(etc_path)s', 'supervisor']),
     ('supervisord_config', '/etc/supervisord.conf'),
@@ -118,8 +138,8 @@ def substitute(value, conf):
 
 
 def process_conf(user_conf, use_defaults=True):
-    user_conf = _AttributeDict(user_conf or {})
-    conf = _AttributeDict()
+    user_conf = AttributeDict(user_conf or {})
+    conf = AttributeDict()
 
     if 'address' in user_conf:
         conf.setdefault('address', user_conf.address)
@@ -158,3 +178,21 @@ def process_conf(user_conf, use_defaults=True):
 
 def setup_conf(user_conf):
     return MultiSourceDict(process_conf(user_conf))
+
+
+def fabconf(name, base_conf, kwargs=None):
+    conf = base_conf.copy()
+
+    try:
+        import fabconf as config
+    except ImportError:
+        pass
+    else:
+        name = '%s_CONF' % name.upper()
+        conf.update(getattr(config, name))
+
+    if kwargs:
+        conf.update(kwargs)
+
+    env.conf = setup_conf(conf)
+    env.hosts = [env.conf.address]

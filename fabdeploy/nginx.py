@@ -14,7 +14,7 @@ class Install(Task):
     def do(self):
         options = {'lenny': '-t lenny-backports'}
         system.aptitude_install.run(packages='nginx',
-                                    options=options.get(self.os, ''))
+                                    options=options.get(self.conf.os, ''))
         sudo('rm --force /etc/nginx/sites-enabled/default')
 
 install = Install()
@@ -38,12 +38,8 @@ class PushConfigTask(Task):
 
 class PushApacheConfig(PushConfigTask):
     @conf
-    def apache_port(self):
-        return apache.PushConfig(conf=self.conf).conf.port
-
-    @conf
     def config_template(self):
-        return 'nginx_apache.confi'
+        return 'nginx_apache.config'
 
 push_apache_config = PushApacheConfig()
 

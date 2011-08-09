@@ -85,7 +85,7 @@ class CreateUser(Execute):
     SQL_CREATE_USER = """
     CREATE USER '%(db_user)s'@localhost
     IDENTIFIED BY '%(db_password)s';
-    """
+    """.strip()
 
     @conf
     def sql_user_exists(self):
@@ -96,7 +96,8 @@ class CreateUser(Execute):
         return self.SQL_CREATE_USER % self.conf
 
     def user_exists(self):
-        with settings(hide('everything'), warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'),
+                      warn_only=True):
             with execute.tmp_conf(self.conf):
                 result = execute.run(sql=self.conf.sql_user_exists)
         return result.succeeded
@@ -105,6 +106,7 @@ class CreateUser(Execute):
         if self.user_exists():
             puts('MySQL user "%(db_user)s" already exists' % self.conf)
             return
+        print self.conf.kwargs
         super(CreateUser, self).do()
 
 create_user = CreateUser()
