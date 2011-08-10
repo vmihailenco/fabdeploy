@@ -2,6 +2,7 @@ import os
 import sys
 import posixpath
 import logging
+import datetime
 try:
     from collections import OrderedDict
 except ImportError:
@@ -10,8 +11,8 @@ except ImportError:
 from fabric.api import env
 from fabric import network
 
-from fabdeploy.containers import MultiSourceDict, AttributeDict
-from fabdeploy.utils import get_home_path, detect_os
+from fabdeploy.containers import MultiSourceDict, AttributeDict, conf
+from fabdeploy.utils import get_home_path
 
 
 logger = logging.getLogger('fabdeploy')
@@ -48,15 +49,29 @@ def get_django_path(name):
     return posixpath.join(env.conf.django_path, name)
 
 
-try:
-    import multiprocessing
-except ImportError:
-    CPU_COUNT = 4
-else:
-    CPU_COUNT = multiprocessing.cpu_count()
+@conf
+def os_codename(conf):
+    from fabdeploy import system
+    conf.os = system.os_codename.run()
+    return conf.os
+
+
+@conf
+def cpu_count(conf):
+    from fabdeploy import system
+    conf.cpu_count = system.cpu_count.run()
+    return conf.cpu_count
+
+
+@conf
+def current_time(conf):
+    return datetime.datetime.utcnow().strftime(conf.time_format)
 
 
 DEFAULTS = OrderedDict([
+    ('os', os_codename),
+    ('cpu_count', cpu_count),
+
     ('instance_name', '%(user)s'),
     ('django_path_getter', get_django_path),
     ('django_lpath_getter', get_django_lpath),
@@ -66,7 +81,7 @@ DEFAULTS = OrderedDict([
     ('project_dir', ''),
     # directory name that contains manage.py file (django project root)
     ('django_dir', ''),
-    ('home_path', lambda conf: get_home_path(conf.user)),
+    ('home_path', conf(lambda conf: get_home_path(conf.user))),
     ('src_path', ['%(home_path)s', 'src', '%(instance_name)s']),
     ('project_path', ['%(src_path)s', '%(project_dir)s']),
     ('django_path', ['%(project_path)s', '%(django_dir)s']),
@@ -84,6 +99,7 @@ DEFAULTS = OrderedDict([
     ('django_lpath', ['%(src_lpath)s', '%(django_ldir)s']),
 
     ('time_format', '%Y.%m.%d-%H.%M'),
+    ('current_time', current_time),
     # user that have sudo right
     # this is useful, because usually deploy user don't have sudo right
     ('sudo_user', 'root'),
@@ -91,9 +107,8 @@ DEFAULTS = OrderedDict([
     ('server_admin', 'admin@%(host)s'),
 
     ('apache_processes', 1),
-    ('apache_threads', CPU_COUNT * 2 + 1),
-    ('uwsgi_processes', CPU_COUNT * 2 + 1),
-    ('gunicorn_workers', CPU_COUNT * 2 + 1),
+    ('apache_threads', conf(lambda conf: conf.cpu_count * 2 + 1)),
+    ('uwsgi_processes', conf(lambda conf: conf.cpu_count * 2 + 1)),
 
     ('config_templates_lpath_getter', get_config_template_path),
     ('config_templates_pathes', ['config_templates']),
@@ -139,16 +154,13 @@ def substitute(value, conf):
 
 def process_conf(user_conf, use_defaults=True):
     user_conf = AttributeDict(user_conf or {})
-    conf = AttributeDict()
+    conf = MultiSourceDict(name='process_conf')
 
     if 'address' in user_conf:
         conf.setdefault('address', user_conf.address)
         username, host, _ = network.normalize(conf.address)
         conf.setdefault('user', username)
         conf.setdefault('host', host)
-
-    if 'os' not in user_conf and 'address' in conf:
-        conf.setdefault('os', detect_os(conf.address))
 
     if use_defaults:
         merged_conf = DEFAULTS.copy()
@@ -157,14 +169,10 @@ def process_conf(user_conf, use_defaults=True):
         merged_conf = user_conf
 
     for k, v in merged_conf.items():
-        if callable(v) and not k.endswith('_getter'):
-            v = v(conf)
-
         try:
             v = substitute(v, conf)
         except ValueError:
             logger.debug('Can not format %r=%r' % (k, v))
-            pass
 
         if k.endswith(('_dir', '_path')) and isinstance(v, (list, tuple)):
             v = posixpath.join(*v).rstrip(posixpath.sep)

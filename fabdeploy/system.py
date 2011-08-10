@@ -1,4 +1,7 @@
-from fabric.api import env, sudo
+import re
+import ast
+
+from fabric.api import env, run, sudo, settings, hide
 from fabric.utils import puts, abort
 
 from fabdeploy.containers import conf
@@ -6,7 +9,53 @@ from fabdeploy.task import Task
 from fabdeploy import pip
 
 
-__all__ = ['aptitude_install', 'setup_backports', 'install_common_software']
+__all__ = ['cpu_count', 'os_codename', 'aptitude_install', 'setup_backports',
+           'install_common_software']
+
+
+class CpuCount(Task):
+    def get_cpu_count(self):
+        with settings(hide('everything')):
+            output = run('python -c "import multiprocessing; '
+                         'print multiprocessing.cpu_count()"')
+        return ast.literal_eval(output)
+
+    def do(self):
+        cpu_count = self.get_cpu_count()
+        puts('Number of CPUs: %s' % cpu_count)
+        return cpu_count
+
+cpu_count = CpuCount()
+
+
+class OSCodename(Task):
+    def get_codename(self):
+        with settings(hide('everything')):
+            output = run('python -c "import platform; print platform.dist()"')
+        distname, version, id = ast.literal_eval(output)
+
+        patterns = [
+            ('squeeze', ('debian', '^6', '')),
+            ('lenny', ('debian', '^5', '')),
+            ('natty', ('Ubuntu', '^11.04', '')),
+            ('maverick', ('Ubuntu', '^10.10', '')),
+            ('lucid', ('Ubuntu', '^10.04', '')),
+        ]
+        for name, p in patterns:
+            if (re.match(p[0], distname) and
+                    re.match(p[1], version) and
+                    re.match(p[2], id)):
+                return name
+
+    def do(self):
+        codename = self.get_codename()
+        if codename is None:
+            abort('Your OS is unsupported')
+            return
+        puts('OS codename: %s' % codename)
+        return codename
+
+os_codename = OSCodename()
 
 
 class AptitudeUpdate(Task):

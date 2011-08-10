@@ -26,10 +26,6 @@ class Task(BaseTask):
     def do(self):
         raise NotImplementedError()
 
-    @conf
-    def current_time(self):
-        return datetime.datetime.utcnow().strftime(self.conf.time_format)
-
     def generate_name(self):
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', self.__class__.__name__)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
@@ -77,7 +73,7 @@ class Task(BaseTask):
             if old_kwargs is not None:
                 # conf can be reused, but kwargs should not
                 self.conf.kwargs = old_kwargs
-            else:
+            elif self.conf:
                 self.conf.kwargs = {}
                 self.conf = None
 

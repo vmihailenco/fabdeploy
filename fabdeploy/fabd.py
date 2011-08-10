@@ -40,6 +40,7 @@ remove_src = RemoveSrc()
 
 class Debug(Task):
     """Echo config variable."""
+
     def do(self):
         puts(self.conf[self.conf.var])
 

@@ -1,52 +1,11 @@
-import re
 import posixpath
 from functools import wraps
 from contextlib import contextmanager
 
-from fabric.api import env, cd, run, prefix, abort
+from fabric.api import env, cd, prefix
 from fabric import network
-from fabric.utils import puts
 from fabric.operations import _handle_failure
 from fabric.contrib.files import upload_template
-
-
-DETECTION_ERROR_MESSAGE = """
-OS detection failed. This probably means your OS is not
-supported by django-fab-deploy. If you really know what
-you are doing, set env.conf.OS variable to desired OS
-name in order to bypass this error message.
-If you believe the OS is supported but the detection
-fails or you want to get your OS supported, please fire an issue at
-https://bitbucket.org/kmike/django-fab-deploy/issues/new
-"""
-
-
-def codename(distname, version, id):
-    patterns = [
-        ('squeeze', ('debian', '^6', '')),
-        ('lenny', ('debian', '^5', '')),
-        ('natty', ('Ubuntu', '^11.04', '')),
-        ('maverick', ('Ubuntu', '^10.10', '')),
-        ('lucid', ('Ubuntu', '^10.04', '')),
-    ]
-    for name, p in patterns:
-        if (re.match(p[0], distname) and
-                re.match(p[1], version) and
-                re.match(p[2], id)):
-            return name
-
-
-def detect_os(address):
-    with host(address):
-        output = run('python -c "import platform; print platform.dist()"')
-
-    name = codename(*eval(output))
-    if name is None:
-        abort(DETECTION_ERROR_MESSAGE)
-        return
-
-    puts('OS %s is detected' % name)
-    return name
 
 
 @contextmanager

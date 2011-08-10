@@ -35,9 +35,17 @@ class MultiSourceDict(MutableMapping):
 
         self.kwargs = kwargs or {}
 
+    def process_conf(self, conf, name):
+        value = conf[name]
+        if callable(value) and hasattr(value, '_is_conf'):
+            value = value(self)
+            if name in self.kwargs:
+                env.conf[name] = self.kwargs[name]
+        return value
+
     def get_value(self, name, use_prompt=True):
         if name in self.kwargs:
-            return self.kwargs[name]
+            return self.process_conf(self.kwargs, name)
 
         if name in self.task_conf_keys:
             # delete to avoid recursion
@@ -53,7 +61,7 @@ class MultiSourceDict(MutableMapping):
             else:
                 raise MissingVarException(name)
 
-        return self.conf[name]
+        return self.process_conf(self.conf, name)
 
     def set_value(self, name, value):
         self.kwargs[name] = value
