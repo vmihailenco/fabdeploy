@@ -136,6 +136,6 @@ class EnableKey(SshManagementTask):
             authorized_files = list_authorized_files.get_authorized_files(
                 exclude_users=self.conf.exclude_users)
             for user, authorized_file in authorized_files:
-                self.enable_key(authorized_file, conf.key)
+                self.enable_key(authorized_file, self.conf.key)
 
 enable_key = EnableKey()
