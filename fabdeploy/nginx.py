@@ -3,7 +3,7 @@ from fabric.api import sudo, settings
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
 from fabdeploy.utils import upload_config_template
-from fabdeploy import system, apache
+from fabdeploy import system
 
 
 __all__ = ['install', 'restart', 'push_apache_config',

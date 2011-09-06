@@ -1,11 +1,10 @@
 import re
-import datetime
 from contextlib import contextmanager
 
 from fabric.api import env, settings
 from fabric.tasks import Task as BaseTask
 
-from fabdeploy.containers import MultiSourceDict, conf
+from fabdeploy.containers import MultiSourceDict
 from fabdeploy.base import process_conf
 from fabdeploy.utils import unprefix_conf
 

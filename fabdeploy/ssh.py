@@ -101,7 +101,7 @@ class DisableKey(SshManagementTask):
         key_regex = re.escape(key)
         key_regex = key_regex.replace('\/', '/')
         key_regex = '^%s$' % key_regex
-        backup = '.%s.bak' % self.current_time()
+        backup = '.%s.bak' % self.conf.current_time
         files.comment(authorized_file, key_regex, use_sudo=True, backup=backup)
 
     def do(self):
@@ -118,7 +118,7 @@ disable_key = DisableKey()
 
 class EnableKey(SshManagementTask):
     def enable_key(self, authorized_file, key):
-        backup = '.%s.bak' % self.current_time()
+        backup = '.%s.bak' % self.conf.current_time
         regex = '%s' % re.escape(key)
         commented_key = '#' + regex
 

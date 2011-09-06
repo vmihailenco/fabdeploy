@@ -1,6 +1,7 @@
 from fabric.api import sudo, settings
 
-from fabdeploy.task import Task as BaseTask, conf
+from fabdeploy.task import Task as BaseTask
+from fabdeploy.containers import conf
 from fabdeploy.utils import upload_config_template
 
 

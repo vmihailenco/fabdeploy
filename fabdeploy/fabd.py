@@ -1,3 +1,5 @@
+import pprint
+
 from fabric.api import run, puts, sudo
 
 from fabdeploy.task import Task
@@ -39,12 +41,15 @@ remove_src = RemoveSrc()
 
 
 class Debug(Task):
-    """Echo config variable."""
+    """Print config variable."""
 
     def do(self):
-        puts(self.conf[self.conf.var])
+        if self.conf['var']:
+            puts(self.conf[self.conf.var])
+        else:
+            puts(pprint.pformat(dict(self.conf)))
 
-    def run(self, var):
+    def run(self, var=None):
         super(Debug, self).run(var=var)
 
 debug = Debug()

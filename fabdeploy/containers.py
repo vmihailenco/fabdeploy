@@ -23,6 +23,15 @@ class MissingVarException(Exception):
 
 
 class MultiSourceDict(MutableMapping):
+    """
+    Dict that looks for the key in several places.
+
+    Currently supported:
+    - kwargs passed to the task;
+    - task methods decorated with ``conf`` function;
+    - conf passed to this dict;
+    - prompt user for the value."""
+
     def __init__(self, conf=None, task=None, kwargs=None, name=None):
         self.name = name or ''
         self.conf = conf or {}
@@ -55,7 +64,8 @@ class MultiSourceDict(MutableMapping):
             return r
 
         if name not in self.conf:
-            if not name.startswith('_') and use_prompt:
+            if isinstance(name, basestring) and not name.startswith('_') and \
+                    use_prompt:
                 self.conf[name] = prompt('%s.%s = ' % (self.name, name))
                 env.conf[name] = self.conf[name]
             else:
@@ -126,7 +136,12 @@ class MultiSourceDict(MutableMapping):
     def copy(self):
         return copy.deepcopy(self)
 
+    def __repr__(self):
+        return repr(dict(self))
+
 
 def conf(func):
+    """Decorator to mark function as config source."""
+
     func._is_conf = True
     return func
