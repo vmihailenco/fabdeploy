@@ -134,7 +134,7 @@ def upload_config_template(name, to=None, context=None, skip_unexistent=False,
 
 def unprefix_conf(conf, prefixes):
     for prefix in prefixes:
-        for key in conf.copy():
+        for key in conf.keys():
             if key.startswith(prefix):
                 conf[key[len(prefix):]] = conf[key]
     return conf

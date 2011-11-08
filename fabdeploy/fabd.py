@@ -47,7 +47,7 @@ class Debug(Task):
         if self.conf['var']:
             puts(self.conf[self.conf.var])
         else:
-            puts(pprint.pformat(dict(self.conf)))
+            puts('\n' + pprint.pformat(dict(self.conf)))
 
     def run(self, var=None):
         super(Debug, self).run(var=var)

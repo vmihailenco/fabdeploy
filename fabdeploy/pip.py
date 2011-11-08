@@ -20,9 +20,7 @@ class Install(Task):
         return options
 
     def do(self):
-        sudo('pip install %(options)s '
-            '--download-cache %(pip_cache_path)s '
-            '%(app)s' % self.conf)
+        sudo('pip install %(options)s %(app)s' % self.conf)
 
 install = Install()
 
@@ -36,9 +34,11 @@ class SetupConf(Task):
 
     def do(self):
         sudo('mkdir --parents %(home_path)s/.pip' % self.conf)
-        upload_config_template('pip.conf',
-                               '%(home_path)s/.pip/pip.conf' % self.conf,
-                               use_sudo=True)
-        sudo('chown --recursive %(user)s:%(user)s %(home_path)s/.pip' % self.conf)
+        upload_config_template(
+            'pip.conf',
+            '%(home_path)s/.pip/pip.conf' % self.conf,
+            use_sudo=True)
+        sudo('chown --recursive %(user)s:%(user)s %(home_path)s/.pip' %
+             self.conf)
 
 setup_conf = SetupConf()

@@ -134,7 +134,8 @@ class MultiSourceDict(MutableMapping):
             self.set_value(name, value)
 
     def copy(self):
-        return copy.deepcopy(self)
+        return MultiSourceDict(
+            conf=self.con, task=self.task, kwargs=self.kwargs, name=self.name)
 
     def __repr__(self):
         return repr(dict(self))

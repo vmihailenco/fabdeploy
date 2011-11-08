@@ -1,4 +1,5 @@
 import re
+import copy
 from contextlib import contextmanager
 
 from fabric.api import env, settings
@@ -10,9 +11,11 @@ from fabdeploy.utils import unprefix_conf
 
 
 class Task(BaseTask):
+    name = None
+
     def __init__(self, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
-        if self.name == 'undefined':
+        if self.name is None:
             self.name = self.generate_name()
         self.conf = None
 
@@ -41,8 +44,8 @@ class Task(BaseTask):
         ]
 
     def setup_conf(self, kwargs):
-        if getattr(env, 'conf', None):
-            conf = env.conf.copy()
+        if hasattr(env, 'conf'):
+            conf = env.conf
             conf = unprefix_conf(conf, self.get_prefixes())
         else:
             conf = {}

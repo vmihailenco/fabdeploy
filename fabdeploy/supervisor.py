@@ -6,7 +6,7 @@ from fabdeploy.utils import upload_config_template
 
 
 __all__ = ['install', 'd', 'ctl', 'shutdown', 'update', 'push_configs',
-           'stop_program', 'restart_program']
+           'start_program', 'stop_program', 'restart_program']
 
 
 class Task(BaseTask):
@@ -106,6 +106,16 @@ class RestartProgram(ProgramCommand):
         return 'restart'
 
 restart_program = RestartProgram()
+
+
+class StartProgram(ProgramCommand):
+    """Start ``supervisor_programs``."""
+
+    @conf
+    def command(self):
+        return 'start'
+
+start_program = StartProgram()
 
 
 class StopProgram(ProgramCommand):

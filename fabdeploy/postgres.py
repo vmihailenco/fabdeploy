@@ -1,6 +1,6 @@
 import posixpath
 
-from fabric.api import sudo
+from fabric.api import run, sudo
 
 from fabdeploy.containers import conf
 from fabdeploy.task import Task
@@ -20,11 +20,12 @@ class Dump(Task):
 
     @conf
     def command(self):
-        return 'pg_dump --host=localhost --username=%(db_user)s ' \
+        return 'export PGPASSWORD=%(db_password)s;' \
+               'pg_dump --host=localhost --username=%(db_user)s ' \
                '--format=c --file=%(filepath)s %(db_name)s' % self.conf
 
     def do(self):
-        return sudo(self.conf.command)
+        return run(self.conf.command)
 
 dump = Dump()
 
