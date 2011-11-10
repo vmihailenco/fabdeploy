@@ -5,12 +5,11 @@ from collections import defaultdict
 
 from fabric.api import cd, sudo, puts
 from fabric.contrib import files
-from fabric.contrib.files import exists
 
 from fabdeploy.containers import conf, MissingVarException
 from fabdeploy.task import Task
 from fabdeploy.users import list_users
-from fabdeploy.files import read_file
+from fabdeploy.files import read_file, exists
 from fabdeploy.utils import get_home_path, split_lines
 
 
@@ -57,7 +56,7 @@ class ListAuthorizedFiles(SshManagementTask):
         for user in users:
             dirpath = get_home_path(user)
             authorized_file = '%s/.ssh/authorized_keys' % dirpath
-            if exists(authorized_file, use_sudo=True):
+            if exists(authorized_file, use_sudo=True, shell=False):
                 authorized_files.append((user, authorized_file))
         return authorized_files
 
@@ -77,7 +76,7 @@ class ListKeys(SshManagementTask):
 
         keys = defaultdict(list)
         for user, authorized_file in authorized_files:
-            content = read_file(authorized_file, use_sudo=True)
+            content = read_file(authorized_file, use_sudo=True, shell=False)
             for key in split_lines(content):
                 if key.startswith('#'):
                     continue
