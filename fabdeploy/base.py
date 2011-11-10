@@ -188,7 +188,7 @@ def setup_conf(user_conf):
     return MultiSourceDict(process_conf(user_conf))
 
 
-def fabconf(name, base_conf, kwargs=None):
+def fabconf(name, base_conf=None, params=None):
     conf = base_conf.copy()
 
     try:
@@ -199,8 +199,8 @@ def fabconf(name, base_conf, kwargs=None):
         name = '%s_CONF' % name.upper()
         conf.update(getattr(config, name))
 
-    if kwargs:
-        conf.update(kwargs)
+    if params:
+        conf.update(params)
 
     env.conf = setup_conf(conf)
     env.hosts = [env.conf.address]
