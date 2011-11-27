@@ -28,7 +28,7 @@ def test_set_get():
     assert d.get('not_exist', 'default') == 'default'
 
 
-def test_usage_with_jinja2():
+def test_jinja2_usage():
     data = {'foo': 'data'}
     obj = DataSource()
 

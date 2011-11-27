@@ -4,9 +4,9 @@ import ast
 from fabric.api import env, run, sudo, settings, hide
 from fabric.utils import puts, abort
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
-from fabdeploy import pip
+from . import pip
+from .containers import conf
+from .task import Task
 
 
 __all__ = ['cpu_count', 'os_codename', 'aptitude_install', 'setup_backports',

@@ -2,8 +2,8 @@ import os
 
 from fabric.api import settings, sudo, puts
 
-from fabdeploy.task import Task
-from fabdeploy.files import list_files
+from .task import Task
+from .files import list_files
 
 
 __all__ = ['create', 'delete', 'list_users']

@@ -1,5 +1,5 @@
-from fabdeploy.task import Task
-from fabdeploy.utils import upload_config_template
+from .task import Task
+from .utils import upload_config_template
 
 
 __all__ = ['push_config']

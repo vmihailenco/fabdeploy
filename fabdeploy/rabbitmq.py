@@ -1,8 +1,8 @@
 from fabric.api import sudo, task
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
-from fabdeploy import system
+from . import system
+from .containers import conf
+from .task import Task
 
 
 __all__ = ['install', 'add_user', 'add_vhost', 'set_permissions']

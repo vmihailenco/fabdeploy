@@ -1,11 +1,13 @@
 Usage
 =====
 
-Type::
+List of available tasks::
 
     fab --list
 
-to get list of available tasks.
+List of available variables::
+
+    fab fabd.debug
 
 Executing tasks
 ===============

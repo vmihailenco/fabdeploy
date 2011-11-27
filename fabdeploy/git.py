@@ -1,7 +1,7 @@
 from fabric.api import cd, run, local
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
+from .containers import conf
+from .task import Task
 
 
 __all__ = ['init', 'push']

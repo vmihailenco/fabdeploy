@@ -1,8 +1,8 @@
 from fabric.api import sudo, settings
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task as BaseTask
-from fabdeploy.utils import upload_config_template
+from .containers import conf
+from .task import Task as BaseTask
+from .utils import upload_config_template
 
 
 __all__ = ['install', 'd', 'ctl', 'shutdown', 'update', 'push_configs',

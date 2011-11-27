@@ -1,8 +1,8 @@
 from fabric.api import sudo
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
-from fabdeploy.utils import get_home_path, upload_config_template
+from .containers import conf
+from .task import Task
+from .utils import get_home_path, upload_config_template
 
 
 __all__ = ['install', 'setup_conf']

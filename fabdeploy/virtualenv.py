@@ -2,10 +2,10 @@ import posixpath
 
 from fabric.api import run, sudo, cd
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
-from fabdeploy import pip
-from fabdeploy.utils import inside_virtualenv, inside_project
+from . import pip
+from .containers import conf
+from .task import Task
+from .utils import inside_virtualenv, inside_project
 
 
 __all__ = ['pip_install', 'pip_install_req', 'create', 'remove']

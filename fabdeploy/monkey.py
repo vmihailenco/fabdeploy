@@ -1,6 +1,7 @@
 from fabric import operations
 from fabric.contrib import files
-from fabdeploy.utils import sudo_user
+
+from .utils import sudo_user
 
 
 __all__ = ['patch_all']

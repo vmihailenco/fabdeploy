@@ -1,9 +1,9 @@
 from fabric.api import run
 from fabric.contrib import files
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
-from fabdeploy.utils import inside_django
+from .containers import conf
+from .task import Task
+from .utils import inside_django
 
 
 __all__ = ['push_settings', 'manage', 'syncdb', 'migrate', 'collectstatic']

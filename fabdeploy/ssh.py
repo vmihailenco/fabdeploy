@@ -6,11 +6,11 @@ from collections import defaultdict
 from fabric.api import cd, sudo, puts
 from fabric.contrib import files
 
-from fabdeploy.containers import conf, MissingVarException
-from fabdeploy.task import Task
-from fabdeploy.users import list_users
-from fabdeploy.files import read_file, exists
-from fabdeploy.utils import get_home_path, split_lines
+from .containers import conf, MissingVarException
+from .task import Task
+from .users import list_users
+from .files import read_file, exists
+from .utils import get_home_path, split_lines
 
 
 __all__ = ['push_key', 'list_authorized_files', 'list_keys', 'enable_key',

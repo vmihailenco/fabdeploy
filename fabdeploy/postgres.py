@@ -2,11 +2,19 @@ import posixpath
 
 from fabric.api import run, sudo
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
+from .containers import conf
+from .task import Task
 
 
-__all__ = ['dump', 'create_role', 'drop_role', 'grant', 'create_db', 'drop_db']
+__all__ = ['install', 'dump', 'execute', 'create_user', 'drop_user',
+           'create_db', 'drop_db', 'grant']
+
+
+class Install(Task):
+    def do(self):
+        pass
+
+install = Install()
 
 
 class Dump(Task):
@@ -50,38 +58,26 @@ class Execute(Task):
 execute = Execute()
 
 
-class CreateRole(Execute):
-    SQL_CREATE_ROLE = """
+class CreateUser(Execute):
+    SQL_CREATE_USER = """
     CREATE ROLE %(db_user)s WITH LOGIN PASSWORD '%(db_password)s';
     """.strip()
 
     @conf
     def sql(self):
-        return self.SQL_CREATE_ROLE % self.conf
+        return self.SQL_CREATE_USER % self.conf
 
-create_role = CreateRole()
-
-
-class DropRole(Execute):
-    SQL_DROP_ROLE = "DROP ROLE %(db_user)s;"
-
-    @conf
-    def sql(self):
-        return self.SQL_DROP_ROLE % self.conf
-
-drop_role = DropRole()
+create_user = CreateUser()
 
 
-class Grant(Execute):
-    SQL_GRANT = """
-    GRANT ALL PRIVILEGES ON DATABASE %(db_name)s TO %(db_user)s;
-    """.strip()
+class DropUser(Execute):
+    SQL_DROP_USER = "DROP ROLE %(db_user)s;"
 
     @conf
     def sql(self):
-        return self.SQL_GRANT % self.conf
+        return self.SQL_DROP_USER % self.conf
 
-grant = Grant()
+drop_user = DropUser()
 
 
 class CreateDb(Execute):
@@ -104,3 +100,15 @@ class DropDb(Execute):
         return self.SQL_DROP_DB % self.conf
 
 drop_db = DropDb()
+
+
+class Grant(Execute):
+    SQL_GRANT = """
+    GRANT ALL PRIVILEGES ON DATABASE %(db_name)s TO %(db_user)s;
+    """.strip()
+
+    @conf
+    def sql(self):
+        return self.SQL_GRANT % self.conf
+
+grant = Grant()

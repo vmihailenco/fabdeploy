@@ -2,7 +2,7 @@ import pprint
 
 from fabric.api import run, puts, sudo
 
-from fabdeploy.task import Task
+from .task import Task
 
 
 __all__ = ['mkdirs', 'remove_src', 'debug']

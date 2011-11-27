@@ -2,7 +2,7 @@ import posixpath
 
 from fabric.api import run, settings, hide, sudo
 
-from fabdeploy.utils import split_lines
+from .utils import split_lines
 
 
 def list_files(dirpath):

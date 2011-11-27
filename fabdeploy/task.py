@@ -1,13 +1,12 @@
 import re
-import copy
 from contextlib import contextmanager
 
 from fabric.api import env, settings
 from fabric.tasks import Task as BaseTask
 
-from fabdeploy.containers import MultiSourceDict
-from fabdeploy.base import process_conf
-from fabdeploy.utils import unprefix_conf
+from .containers import MultiSourceDict
+from .base import process_conf
+from .utils import unprefix_conf
 
 
 class Task(BaseTask):
@@ -65,18 +64,19 @@ class Task(BaseTask):
                 if self.conf is None:
                     self.setup_conf(conf)
                 else:
-                    old_kwargs = self.conf.kwargs
-                    self.conf.kwargs.update(conf)
+                    old_kwargs = self.conf.task_kwargs
+                    self.conf.task_kwargs.update(conf)
 
-            with settings(host_string=env.conf.get('address', ''),
-                          **fabric_settings):
+            with settings(
+                host_string=self.conf.get('address', ''),
+                **fabric_settings):
                 yield
         finally:
             if old_kwargs is not None:
                 # conf can be reused, but kwargs should not
-                self.conf.kwargs = old_kwargs
+                self.conf.task_kwargs = old_kwargs
             elif self.conf:
-                self.conf.kwargs = {}
+                self.conf.task_kwargs = {}
                 self.conf = None
 
     def run(self, **kwargs):

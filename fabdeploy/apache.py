@@ -3,10 +3,10 @@ import posixpath
 from fabric.api import run, sudo
 from fabric.contrib import files
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
-from fabdeploy.utils import upload_config_template
-from fabdeploy import system
+from . import system
+from .containers import conf
+from .task import Task
+from .utils import upload_config_template
 
 
 __all__ = ['install', 'restart', 'graceful', 'push_config',

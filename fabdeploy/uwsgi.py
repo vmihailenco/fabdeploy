@@ -1,8 +1,8 @@
 from fabric.api import sudo, settings
 
-from fabdeploy.task import Task as BaseTask
-from fabdeploy.containers import conf
-from fabdeploy.utils import upload_config_template
+from .task import Task as BaseTask
+from .containers import conf
+from .utils import upload_config_template
 
 
 __all__ = ['push_config', 'disable_config', 'emperor']

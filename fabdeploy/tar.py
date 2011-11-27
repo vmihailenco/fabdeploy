@@ -2,8 +2,8 @@ import os
 
 from fabric.api import local, run, put, cd
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
+from .containers import conf
+from .task import Task
 
 
 __all__ = ['push']

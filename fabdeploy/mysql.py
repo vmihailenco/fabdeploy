@@ -2,17 +2,17 @@ import posixpath
 
 from fabric.api import settings, run, sudo, puts, warn, hide
 
-from fabdeploy.containers import conf
-from fabdeploy.task import Task
-from fabdeploy import system
+from . import system
+from .containers import conf
+from .task import Task
 
 
 __all__ = ['install', 'dump', 'execute', 'create_user', 'drop_user',
-           'create_db', 'grant', 'drop_db']
+           'create_db', 'drop_db', 'grant']
 
 
 class Install(Task):
-    """Installs mysql."""
+    """Installs MySQL."""
 
     VERSIONS = {
         'lenny': '5.0',
@@ -61,9 +61,13 @@ class Dump(Task):
     def filepath(self):
         return posixpath.join(self.conf.backups_path, self.conf.filename)
 
+    @conf
+    def command(self):
+        return 'mysqldump --user="%(db_user)s" --password="%(db_password)s" ' \
+               '%(db_name)s > %(filepath)s' % self.conf
+
     def do(self):
-        run('mysqldump --user="%(db_user)s" --password="%(db_password)s" '
-            '%(db_name)s > %(filepath)s' % self.conf)
+        return run(self.command)
 
 dump = Dump()
 
@@ -106,7 +110,6 @@ class CreateUser(Execute):
         if self.user_exists():
             puts('MySQL user "%(db_user)s" already exists' % self.conf)
             return
-        print self.conf.kwargs
         super(CreateUser, self).do()
 
 create_user = CreateUser()
@@ -135,6 +138,16 @@ class CreateDb(Execute):
 create_db = CreateDb()
 
 
+class DropDb(Execute):
+    SQL_DROP_DB = "DROP DATABASE %(db_name)s;"
+
+    @conf
+    def sql(self):
+        return self.SQL_DROP_DB % self.conf
+
+drop_db = DropDb()
+
+
 class Grant(Execute):
     SQL_GRANT = """
     GRANT ALL ON %(db_name)s.* TO '%(db_user)s'@'localhost';
@@ -146,13 +159,3 @@ class Grant(Execute):
         return self.SQL_GRANT % self.conf
 
 grant = Grant()
-
-
-class DropDb(Execute):
-    SQL_DROP_DB = "DROP DATABASE %(db_name)s;"
-
-    @conf
-    def sql(self):
-        return self.SQL_DROP_DB % self.conf
-
-drop_db = DropDb()
