@@ -42,12 +42,12 @@ This is useful to test configuration::
     $ fab prod.fabd.debug:django_path
     /home/prj/src/prj
 
-or
+or::
 
     $ fab prod fabd.debug:cpu_count
     2
 
-or
+or::
 
     $ fab prod fabd.debug:current_time
     2011.11.27-13.40
@@ -89,6 +89,23 @@ You can also temporarily set log path::
     /var
 
 This works for all variables and all tasks.
+
+Built-in tasks customization
+----------------------------
+
+Fabdeploy is written to be highly configurable. For example, there is
+built-in ``tar`` task, which by default packs whole project, uploads it
+to server and unpacks it there.
+
+But you can freely use it to upload custom dirs::
+
+     from fabdeploy import tar
+
+     @task
+     def push_static():
+         tar.push.run(
+             src_dir=os.path.join(env.conf.django_ldir, 'static'),
+             target_dir=posixpath.join(env.conf.django_dir, 'static'))
 
 Different DBs for development and production
 --------------------------------------------
@@ -201,22 +218,6 @@ Configuration is stored in task instance variable ``self.conf``. Each task has i
 - task instance method ``var()`` decorated with ``@conf()``;
 - key ``var`` in ``env.conf`` dict;
 - ask user to provide variable ``var`` using fabric prompt.
-
-Customization
-=============
-
-To upload project using tar archive you can use ``tar`` task with default arguments::
-
-    fab staging tar.push
-
-You can also write task to upload only your static dir using the same task::
-
-     from fabdeploy import tar
-
-     @task
-     def push_static():
-         tar.push.run(src_dir=os.path.join(env.conf.django_ldir, 'static'),
-                      target_dir=posixpath.join(env.conf.django_dir, 'static'))
 
 Writing your task
 =================
