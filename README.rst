@@ -1,5 +1,33 @@
-Usage
-=====
+Quickstart
+==========
+
+There is full working example: <https://github.com/vladimir-webdev/fabdeploy-example>.
+
+Create fabconf.py::
+
+    STAGING_CONF = {}
+    PROD_CONF = {}
+
+Create fabfile.py::
+
+    from fabdeploy import monkey; monkey.patch_all()
+    from fabric.api import *
+    from fabdeploy.api import *; setup_fabdeploy()
+
+
+    @task
+    def staging():
+        fabconf('staging')
+
+
+    @task
+    def prod():
+        fabconf('prod')
+
+
+    @task
+    def deploy():
+        pass
 
 List of available tasks::
 
@@ -8,6 +36,93 @@ List of available tasks::
 List of available variables::
 
     fab fabd.debug
+
+This is useful to test configuration::
+
+    $ fab prod.fabd.debug:django_path
+    /home/prj/src/prj
+
+or
+
+    $ fab prod fabd.debug:cpu_count
+    2
+
+or
+
+    $ fab prod fabd.debug:current_time
+    2011.11.27-13.40
+
+Examples
+========
+
+Control where logs are stored
+-----------------------------
+
+fabconf.py::
+
+    PROD_CONF = {
+        'my_task.log_path': '/var/log/my_task',
+    }
+
+fabfile.py::
+
+    @task
+    def prod():
+        fabconf('prod')
+
+
+    class MyTask(Task):
+        def do(self):
+            print self.conf.log_path
+
+    my_task = MyTask()
+
+
+Output::
+
+    $ fab prod my_task
+    /var/log/my_task
+
+You can also temporarily set log path::
+
+    $ fab prod my_task:log_path='/var'
+    /var
+
+This works for all variables and all tasks.
+
+Different DBs for development and production
+--------------------------------------------
+
+fabconf.py::
+
+    DEV_CONF = {
+        'address': 'user@localhost',
+        'db': 'mysql',
+    }
+
+
+    PROD_CONF = {
+        'address': 'user@localhost',
+        'db': 'postgres',
+    }
+
+fabfile.py::
+
+    @task
+    def dev():
+        fabconf('dev')
+        env.conf.db = getattr(fabdeploy, env.conf.db)
+
+
+    @task
+    def prod():
+        fabconf('prod')
+        env.conf.db = getattr(fabdeploy, env.conf.db)
+
+
+    @task
+    def execute():
+        print env.conf.db.execute
 
 Executing tasks
 ===============

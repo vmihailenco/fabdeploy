@@ -41,19 +41,17 @@ def process_conf(user_conf, use_defaults=True):
     user_conf = AttributeDict(user_conf or {})
     conf = MultiSourceDict(name='process_conf')
 
+    if use_defaults:
+        for k, v in CONF_DEFAULTS.items():
+            user_conf.setdefault(k, v)
+
     if 'address' in user_conf:
         conf.setdefault('address', user_conf.address)
         username, host, _ = network.normalize(conf.address)
         conf.setdefault('user', username)
         conf.setdefault('host', host)
 
-    if use_defaults:
-        merged_conf = CONF_DEFAULTS.copy()
-        merged_conf.update(user_conf)
-    else:
-        merged_conf = user_conf
-
-    for k, v in merged_conf.items():
+    for k, v in user_conf.items():
         try:
             v = substitute(v, conf)
         except ValueError:

@@ -53,6 +53,8 @@ def current_time(conf):
 
 
 DEFAULTS = OrderedDict([
+    ('address', '%s@localhost' % os.environ['USER']),
+
     ('os', os_codename),
     ('cpu_count', cpu_count),
 
