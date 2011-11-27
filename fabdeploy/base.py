@@ -189,7 +189,10 @@ def setup_conf(user_conf):
 
 
 def fabconf(name, base_conf=None, params=None):
-    conf = base_conf.copy()
+    if base_conf:
+        conf = base_conf.copy()
+    else:
+        conf = OrderedDict()
 
     try:
         import fabconf as config
