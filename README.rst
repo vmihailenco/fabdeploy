@@ -1,7 +1,7 @@
 Quickstart
 ==========
 
-There is full working example: <https://github.com/vladimir-webdev/fabdeploy-example>.
+There is full working example: https://github.com/vladimir-webdev/fabdeploy-example.
 
 Create fabconf.py::
 
