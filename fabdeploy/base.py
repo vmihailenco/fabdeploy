@@ -38,16 +38,16 @@ def substitute(value, conf):
 
 
 def process_conf(user_conf, use_defaults=True):
-    user_conf = AttributeDict(user_conf or {})
     conf = MultiSourceDict(name='process_conf')
 
     if use_defaults:
-        for k, v in CONF_DEFAULTS.items():
-            user_conf.setdefault(k, v)
+        tmp_conf = CONF_DEFAULTS.copy()
+        tmp_conf.update(user_conf)
+        user_conf = tmp_conf
 
     if 'address' in user_conf:
-        conf.setdefault('address', user_conf.address)
-        username, host, _ = network.normalize(conf.address)
+        conf.setdefault('address', user_conf['address'])
+        username, host, _ = network.normalize(user_conf['address'])
         conf.setdefault('user', username)
         conf.setdefault('host', host)
 
