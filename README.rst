@@ -1,3 +1,9 @@
+Repos
+=====
+
+- https://bitbucket.org/vladimir_webdev/fabdeploy
+- https://github.com/vladimir-webdev/fabdeploy
+
 Quickstart
 ==========
 
