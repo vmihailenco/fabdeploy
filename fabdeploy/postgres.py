@@ -2,6 +2,7 @@ import posixpath
 
 from fabric.api import run, sudo
 
+from . import system
 from .containers import conf
 from .task import Task
 
@@ -12,7 +13,8 @@ __all__ = ['install', 'dump', 'execute', 'create_user', 'drop_user',
 
 class Install(Task):
     def do(self):
-        pass
+        system.aptitude_install.run(packages='postgresql libpq-dev')
+        sudo('sudo -u postgres psql --command="\password postgres" postgres')
 
 install = Install()
 
