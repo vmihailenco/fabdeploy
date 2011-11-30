@@ -2,7 +2,7 @@ from distutils.core import setup
 
 
 version = __import__('fabdeploy').get_version()
-readme = open('README').read()
+readme = open('README.rst').read()
 
 
 setup(
