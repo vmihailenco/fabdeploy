@@ -1,6 +1,7 @@
 import os
 
 from fabric.api import settings, sudo, puts
+from fabric.contrib.files import contains
 
 from .task import Task
 from .files import list_files
@@ -37,7 +38,7 @@ class ListUsers(Task):
             users.append('root')
         for dirpath in list_files('/home'):
             user = os.path.basename(dirpath)
-            if user not in exclude_users:
+            if user not in exclude_users and contains('/etc/passwd', user):
                 users.append(user)
         return users
 
