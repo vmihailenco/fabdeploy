@@ -11,8 +11,14 @@ _run_command = operations._run_command
 put = operations.put
 
 
-def _patched_run_command(command, shell=True, pty=True,
-                         combine_stderr=True, sudo=False, user=None):
+def _patched_run_command(
+    command,
+    shell=True,
+    pty=True,
+    combine_stderr=True,
+    sudo=False,
+    user=None):
+    print command
     if sudo:
         with sudo_user():
             return _run_command(command, shell=shell, pty=pty,
@@ -22,8 +28,12 @@ def _patched_run_command(command, shell=True, pty=True,
             combine_stderr=combine_stderr, sudo=sudo, user=user)
 
 
-def patched_put(local_path=None, remote_path=None, use_sudo=False,
-                mirror_local_mode=False, mode=None):
+def patched_put(
+    local_path=None,
+    remote_path=None,
+    use_sudo=False,
+    mirror_local_mode=False,
+    mode=None):
     if use_sudo:
         with sudo_user():
             return put(local_path=local_path, remote_path=remote_path,
