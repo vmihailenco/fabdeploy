@@ -18,7 +18,6 @@ def _patched_run_command(
     combine_stderr=True,
     sudo=False,
     user=None):
-    print command
     if sudo:
         with sudo_user():
             return _run_command(command, shell=shell, pty=pty,
