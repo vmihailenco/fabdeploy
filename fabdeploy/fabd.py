@@ -74,7 +74,7 @@ class Conf(Task):
 
         name = '%s_CONF' % self.conf.name.upper()
         conf = getattr(config, name)
-        conf.update(**self.kwargs)
+        conf.update(**self._kwargs)
 
         return conf
 
