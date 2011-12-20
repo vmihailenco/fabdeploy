@@ -2,11 +2,20 @@ import pprint
 
 from fabric.api import env, run, sudo, puts, abort
 
+from . import users, ssh
 from .base import setup_conf
+from .containers import conf as conf_dec
 from .task import Task
 
 
-__all__ = ['mkdirs', 'remove_src', 'debug', 'conf']
+__all__ = [
+    'mkdirs',
+    'remove_src',
+    'debug',
+    'conf',
+    'empty_conf',
+    'create_user'
+]
 
 
 class Mkdirs(Task):
@@ -57,7 +66,7 @@ debug = Debug()
 
 
 class Conf(Task):
-    def do(self):
+    def base_conf(self):
         try:
             import fabconf as config
         except ImportError:
@@ -65,12 +74,41 @@ class Conf(Task):
 
         name = '%s_CONF' % self.conf.name.upper()
         conf = getattr(config, name)
+        conf.update(**self.kwargs)
 
-        env.conf = setup_conf(conf)
+        return conf
+
+    def do(self):
+        env.conf = setup_conf(self.base_conf())
         env.hosts = [env.conf.address]
 
     def run(self, name, **kwargs):
         kwargs.setdefault('name', name)
+        self._kwargs = kwargs
         return super(Conf, self).run(**kwargs)
 
 conf = Conf()
+
+
+class EmptyConf(Conf):
+    def base_conf(self):
+        return self._kwargs
+
+    def run(self, **kwargs):
+        self._kwargs = kwargs
+        return super(Conf, self).run()
+
+empty_conf = EmptyConf()
+
+
+class CreateUser(Task):
+    @conf_dec
+    def fabd_user(self):
+        return 'fabdeploy'
+
+    def do(self):
+        users.create.run(user=self.conf.fabd_user)
+        ssh.push_key.run(pub_key_file='~/.ssh/id_rsa.pub')
+        users.grant_sudo.run(user=self.conf.fabd_user)
+
+create_user = CreateUser()

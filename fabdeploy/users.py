@@ -1,13 +1,13 @@
 import os
 
 from fabric.api import settings, sudo, puts
-from fabric.contrib.files import contains
+from fabric.contrib import files
 
 from .task import Task
 from .files import list_files
 
 
-__all__ = ['create', 'delete', 'list_users']
+__all__ = ['create', 'delete', 'grant_sudo', 'list_users']
 
 
 class Create(Task):
@@ -25,6 +25,16 @@ class Delete(Task):
 delete = Delete()
 
 
+class GrantSudo(Task):
+    def grant(self):
+        return '%(user)s ALL=(ALL) NOPASSWD: ALL' % self.conf
+
+    def do(self):
+        files.append('/etc/sudoers', self.grant(), use_sudo=True)
+
+grant_sudo = GrantSudo()
+
+
 class ListUsers(Task):
     def before_do(self):
         self.conf.setdefault('exclude_users', [])
@@ -38,7 +48,8 @@ class ListUsers(Task):
             users.append('root')
         for dirpath in list_files('/home'):
             user = os.path.basename(dirpath)
-            if user not in exclude_users and contains('/etc/passwd', user):
+            if user not in exclude_users and \
+               files.contains('/etc/passwd', user):
                 users.append(user)
         return users
 

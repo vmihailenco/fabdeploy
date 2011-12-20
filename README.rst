@@ -22,18 +22,23 @@ Create fabfile.py::
 
 
     @task
-    def staging():
-        fabconf('staging')
-
-
-    @task
-    def prod():
-        fabconf('prod')
-
+    def user_create():
+        users.create.run()
+        ssh.push_key.run(pub_key_file='~/.ssh/id_rsa.pub')
 
     @task
     def deploy():
         pass
+
+Fabdeploy uses two system (linux) users:
+
+- ``sudo_user`` to perform tasks that require sudo right (``root`` by default).
+- ``user`` for other tasks (SSH user by default).
+
+In Ubuntu ``root`` user is disabled by default. You can create special
+``fabdeploy`` user using following command::
+
+    fab fabd.empty_conf:address=user@host,sudo_user=user fabd.create_user
 
 List of available tasks::
 
@@ -45,18 +50,23 @@ List of available variables::
 
 This is useful to test configuration::
 
-    $ fab prod.fabd.debug:django_path
+    $ fab fabd.conf:prod fabd.debug:django_path
     /home/prj/src/prj
 
 or::
 
-    $ fab prod fabd.debug:cpu_count
+    $ fab fabd.conf:prod fabd.debug:cpu_count
     2
 
 or::
 
-    $ fab prod fabd.debug:current_time
+    $ fab fabd.conf:prod fabd.debug:current_time
     2011.11.27-13.40
+
+To deploy project you may use::
+
+    $ fab fabd.conf:staging deploy
+    $ fab fabd.conf:prod deploy
 
 Examples
 ========
