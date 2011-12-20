@@ -5,8 +5,18 @@ from .task import Task as BaseTask
 from .utils import upload_config_template
 
 
-__all__ = ['install', 'd', 'ctl', 'shutdown', 'update', 'push_configs',
-           'start_program', 'stop_program', 'restart_program']
+__all__ = [
+    'install',
+    'd',
+    'ctl',
+    'shutdown',
+    'update',
+    'push_d_config',
+    'push_configs',
+    'start_program',
+    'stop_program',
+    'restart_program'
+]
 
 
 class Task(BaseTask):
@@ -60,14 +70,21 @@ class Update(Ctl):
 update = Update()
 
 
-class PushConfigs(Task):
-    """Push configs for ``supervisor_programs``."""
-
+class PushDConfig(Task):
     def do(self):
         if 'supervisord_config_template' in self.conf:
             upload_config_template(self.conf.supervisord_config_template,
                                    self.conf.supervisord_config,
                                    context=self.conf)
+
+push_d_config = PushDConfig()
+
+
+class PushConfigs(Task):
+    """Push configs for ``supervisor_programs``."""
+
+    def do(self):
+        push_d_config.run()
 
         for program in self.conf.supervisor_programs:
             config = '%s.conf' % program

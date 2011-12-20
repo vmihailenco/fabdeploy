@@ -1,13 +1,14 @@
 import posixpath
 
-from fabric.api import run, sudo
+from fabric.api import run, sudo, puts, prompt
 
-from . import system
+from . import system, files
 from .containers import conf
 from .task import Task
 
 
-__all__ = ['install', 'dump', 'execute', 'create_user', 'drop_user',
+__all__ = ['install', 'dump', 'list_dumps', 'restore',
+           'execute', 'create_user', 'drop_user',
            'create_db', 'drop_db', 'grant']
 
 
@@ -31,13 +32,77 @@ class Dump(Task):
     @conf
     def command(self):
         return 'export PGPASSWORD=%(db_password)s;' \
-               'pg_dump --host=localhost --username=%(db_user)s ' \
-               '--format=c --file=%(filepath)s %(db_name)s' % self.conf
+               'pg_dump ' \
+               '--host=%(db_host)s ' \
+               '--username=%(db_user)s ' \
+               '--format=c ' \
+               '--file=%(filepath)s' \
+               ' %(db_name)s' % self.conf
 
     def do(self):
         return run(self.conf.command)
 
 dump = Dump()
+
+
+class ListDumps(Task):
+    def dumps(self):
+        dumps = list(files.list_files(self.conf.backups_path))
+        dumps.sort(reverse=True)
+        return dumps
+
+    def puts(self, dumps):
+        for i, dump in enumerate(dumps):
+            puts('%s - %s' % (i, posixpath.basename(dump)))
+
+    def do(self):
+        self.puts(self.dumps())
+
+list_dumps = ListDumps()
+
+
+class Restore(Task):
+    @conf
+    def options(self):
+        return '--clean'
+
+    @conf
+    def filepath(self):
+        if 'filename' not in self.conf:
+            with list_dumps.tmp_conf(self.conf):
+                dumps = list_dumps.dumps()
+                while 1:
+                    list_dumps.puts(dumps)
+                    number = prompt('Dump number:')
+                    try:
+                        number = int(number)
+                    except ValueError:
+                        continue
+                    try:
+                        self.conf.filename = dumps[number]
+                        break
+                    except IndexError:
+                        continue
+
+        if self.conf.filename.startswith('/'):
+            return self.conf.filename
+        else:
+            return posixpath.join(self.conf.backups_path, self.conf.filename)
+
+    @conf
+    def command(self):
+        return 'export PGPASSWORD=%(db_password)s;' \
+               'pg_restore ' \
+               '--host=%(db_host)s ' \
+               '--username=%(db_user)s ' \
+               '--dbname=%(db_name)s ' \
+               '%(options)s ' \
+               '%(filepath)s' % self.conf
+
+    def do(self):
+        return run(self.conf.command)
+
+restore = Restore()
 
 
 class Execute(Task):

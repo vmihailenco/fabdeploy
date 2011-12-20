@@ -14,22 +14,22 @@ __all__ = ['cpu_count', 'os_codename', 'aptitude_install', 'setup_backports',
 
 
 class CpuCount(Task):
-    def get_cpu_count(self):
+    PROGRAM = "import multiprocessing; print(multiprocessing.cpu_count())"
+
+    def cpu_count(self):
         with settings(hide('everything')):
-            output = run('python -c "import multiprocessing; '
-                         'print multiprocessing.cpu_count()"')
+            output = run('python -c "%s"' % self.PROGRAM)
         return ast.literal_eval(output)
 
     def do(self):
         cpu_count = self.get_cpu_count()
         puts('Number of CPUs: %s' % cpu_count)
-        return cpu_count
 
 cpu_count = CpuCount()
 
 
 class OSCodename(Task):
-    def get_codename(self):
+    def codename(self):
         with settings(hide('everything')):
             output = run('python -c "import platform; print platform.dist()"')
         distname, version, id = ast.literal_eval(output)
@@ -48,12 +48,11 @@ class OSCodename(Task):
                 return name
 
     def do(self):
-        codename = self.get_codename()
+        codename = self.codename()
         if codename is None:
             abort('Your OS is unsupported')
             return
         puts('OS codename: %s' % codename)
-        return codename
 
 os_codename = OSCodename()
 
@@ -74,7 +73,7 @@ aptitude_update = AptitudeUpdate()
 class AptitudeInstall(Task):
     @conf
     def options(self):
-        return 'options'
+        return ''
 
     def do(self):
         aptitude_update.run()
@@ -122,7 +121,6 @@ COMMON_PACKAGES = [
     'libxml2-dev', 'libxslt1-dev',  # for lxml
 
     'screen', 'locales-all', 'curl',
-    'memcached',
     'subversion',
 ]
 
@@ -138,7 +136,7 @@ EXTRA_PACKAGES = {
 class InstallCommonSoftware(Task):
     def do(self):
         if self.conf.os not in EXTRA_PACKAGES:
-            abort('OS %(os)s is unsupported now.' % self.conf)
+            abort('OS %(os)s is not supported.' % self.conf)
             return
 
         packages = ' '.join(COMMON_PACKAGES + EXTRA_PACKAGES[self.conf.os])

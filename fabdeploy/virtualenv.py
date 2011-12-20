@@ -51,7 +51,7 @@ create = Create()
 
 class Remove(Task):
     def do(self):
-        for dirname in ['bin', 'include', 'lib', 'src']:
+        for dirname in ['bin', 'include', 'lib', 'src', 'build']:
             self.conf.dirname = dirname
             sudo('rm --recursive --force %(env_path)s/%(dirname)s' % self.conf)
 

@@ -7,11 +7,11 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from fabric.api import env
+from fabric.api import env, abort
 from fabric import network
 
 from .conf import DEFAULTS as CONF_DEFAULTS
-from .containers import MultiSourceDict, AttributeDict
+from .containers import MultiSourceDict
 
 
 logger = logging.getLogger('fabdeploy')
@@ -63,6 +63,8 @@ def process_conf(user_conf, use_defaults=True):
             v = os.path.abspath(os.path.join(*v).rstrip(os.sep))
 
         conf.setdefault(k, v)
+        if '.' in k:
+            conf.setdefault(k.replace('.', '__'), v)
 
     return conf
 
@@ -76,11 +78,12 @@ def fabconf(name, base_conf=None, task_kwargs=None):
         conf = base_conf.copy()
     else:
         conf = OrderedDict()
+    conf['conf_name'] = name
 
     try:
         import fabconf as config
     except ImportError:
-        pass
+        abort('Can not import fabconf.py.')
     else:
         name = '%s_CONF' % name.upper()
         conf.update(getattr(config, name))

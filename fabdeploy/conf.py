@@ -36,14 +36,14 @@ def get_pip_req_path(name):
 @conf
 def os_codename(conf):
     from fabdeploy import system
-    conf.os = system.os_codename.run()
+    conf.os = system.os_codename.codename()
     return conf.os
 
 
 @conf
 def cpu_count(conf):
     from fabdeploy import system
-    conf.cpu_count = system.cpu_count.run()
+    conf.cpu_count = system.cpu_count.cpu_count()
     return conf.cpu_count
 
 
@@ -53,6 +53,7 @@ def current_time(conf):
 
 
 DEFAULTS = OrderedDict([
+    ('conf_name', 'default'),
     ('address', '%s@localhost' % os.environ['USER']),
 
     ('os', os_codename),
@@ -97,7 +98,10 @@ DEFAULTS = OrderedDict([
     ('uwsgi_processes', conf(lambda conf: conf.cpu_count * 2 + 1)),
 
     ('config_templates_lpath_getter', get_config_template_path),
-    ('config_templates_pathes', ['config_templates']),
+    ('config_templates_pathes', [
+        'config_templates/%(conf_name)s',
+        'config_templates'
+    ]),
 
     # django settings: manage.py --settings=%(settings)s
     ('settings', 'settings'),

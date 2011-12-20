@@ -26,9 +26,13 @@ push_settings = PushSettings()
 
 
 class Manage(Task):
+    @conf
+    def options(self):
+        return ''
+
     @inside_django
     def do(self):
-        run('python manage.py %(command)s' % self.conf)
+        run('python manage.py %(command)s %(options)s' % self.conf)
 
 manage = Manage()
 
@@ -36,15 +40,19 @@ manage = Manage()
 class Syncdb(Manage):
     @conf
     def command(self):
-        return 'syncdb --noinput'
+        return 'syncdb --noinput' % self.conf
 
 syncdb = Syncdb()
 
 
 class Migrate(Manage):
     @conf
+    def app(self):
+        return ''
+
+    @conf
     def command(self):
-        return 'migrate --noinput'
+        return 'migrate %(app)s --noinput' % self.conf
 
 migrate = Migrate()
 

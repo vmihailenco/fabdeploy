@@ -69,42 +69,52 @@ class Task1(Task):
 task1 = Task1()
 
 
-class Task2(Task):
-    def do(self):
-        with task1.tmp_conf(self.conf):
-            return task1.run()
-
-task2 = Task2()
-
-
 @with_setup(setup, teardown)
 def test_task_called_with_conf_of_another_task():
-    assert task2.run(var='foo') == 'foo'
+    class Task0(Task):
+        def do(self):
+            with task1.tmp_conf(self.conf):
+                return task1.run()
 
+    task0 = Task0()
 
-class Task3(Task):
-    def do(self):
-        return task1.run(var='bar')
-
-task3 = Task3()
+    assert task0.run(var='foo') == 'foo'
 
 
 @with_setup(setup, teardown)
 def test_task_called_from_another_task():
-    assert task3.run(var='foo') == 'bar'
+    class Task0(Task):
+        def do(self):
+            return task1.run(var='bar')
 
+    task0 = Task0()
 
-class Task4(Task):
-    def do(self):
-        with task1.tmp_conf({'var': 'task4'}):
-            v1 = task1.run()
-        v2 = task1.run()
-        return v1, v2, self.conf.var
-
-task4 = Task4()
+    assert task0.run(var='foo') == 'bar'
 
 
 @with_setup(setup, teardown)
 def test_task_with_different_configs():
-    r = task4.run(var='foo')
-    assert r == ('task4', 'task1', 'foo')
+    class Task0(Task):
+        def do(self):
+            with task1.tmp_conf({'var': 'task4'}):
+                v1 = task1.run()
+            return v1, self.conf.var
+
+    task0 = Task0()
+
+    r = task0.run(var='foo')
+    assert r == ('task4', 'foo')
+
+
+@with_setup(setup, teardown)
+def test_setting_conf_in_task():
+    class Task0(Task):
+        def do(self):
+            with task1.tmp_conf(self.conf):
+                self.conf.foo = 'bar'
+            return self.conf.foo
+
+    task0 = Task0()
+
+    r = task0.run()
+    assert r == 'bar'

@@ -12,9 +12,14 @@ __all__ = ['install', 'restart', 'push_apache_config',
 
 class Install(Task):
     def do(self):
-        options = {'lenny': '-t lenny-backports'}
-        system.aptitude_install.run(packages='nginx',
-                                    options=options.get(self.conf.os, ''))
+        if self.conf.os in ['lucid', 'maverick', 'natty']:
+            sudo('add-apt-repository ppa:nginx/stable')
+            system.aptitude_update.run(force=True)
+            system.aptitude_install.run(packages='nginx')
+        else:
+            options = {'lenny': '-t lenny-backports'}
+            system.aptitude_install.run(packages='nginx',
+                                        options=options.get(self.conf.os, ''))
         sudo('rm --force /etc/nginx/sites-enabled/default')
 
 install = Install()

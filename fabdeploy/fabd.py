@@ -1,11 +1,12 @@
 import pprint
 
-from fabric.api import run, puts, sudo
+from fabric.api import env, run, sudo, puts, abort
 
+from .base import setup_conf
 from .task import Task
 
 
-__all__ = ['mkdirs', 'remove_src', 'debug']
+__all__ = ['mkdirs', 'remove_src', 'debug', 'conf']
 
 
 class Mkdirs(Task):
@@ -53,3 +54,23 @@ class Debug(Task):
         super(Debug, self).run(var=var)
 
 debug = Debug()
+
+
+class Conf(Task):
+    def do(self):
+        try:
+            import fabconf as config
+        except ImportError:
+            abort('Can not import fabconf.py.')
+
+        name = '%s_CONF' % self.conf.name.upper()
+        conf = getattr(config, name)
+
+        env.conf = setup_conf(conf)
+        env.hosts = [env.conf.address]
+
+    def run(self, name, **kwargs):
+        kwargs.setdefault('name', name)
+        return super(Conf, self).run(**kwargs)
+
+conf = Conf()

@@ -34,23 +34,26 @@ class Task(BaseTask):
     def _get_module(self):
         return self.__module__.split('.')[-1]
 
-    def get_prefixes(self):
+    def _get_namespaces(self, kwargs):
         module = self._get_module()
-        return [
+        ns = [
             '%s.' % module,
             '%s.' % self.name,
             '%s.%s.' % (module, self.name),
         ]
+        if '_namespace' in kwargs:
+            ns.append(kwargs['_namespace'])
+        return ns
 
     def setup_conf(self, kwargs):
         if hasattr(env, 'conf'):
-            conf = env.conf
-            conf = unprefix_conf(conf, self.get_prefixes())
+            conf = env.conf.copy()
+            conf = unprefix_conf(conf, self._get_namespaces(kwargs))
         else:
             conf = {}
 
-        self.conf = MultiSourceDict(conf, self, kwargs,
-            name='%s.%s' % (self._get_module(), self.name))
+        self.conf = MultiSourceDict(
+            conf, self, kwargs, name='%s.%s' % (self._get_module(), self.name))
 
     @contextmanager
     def tmp_conf(self, conf, **fabric_settings):
@@ -58,7 +61,7 @@ class Task(BaseTask):
             old_kwargs = None
 
             if isinstance(conf, MultiSourceDict):
-                self.conf = conf
+                self.conf = conf.copy()
             else:
                 conf = process_conf(conf, use_defaults=False)
                 if self.conf is None:
@@ -68,8 +71,7 @@ class Task(BaseTask):
                     self.conf.task_kwargs.update(conf)
 
             with settings(
-                host_string=self.conf.get('address', ''),
-                **fabric_settings):
+                host_string=self.conf.get('address', ''), **fabric_settings):
                 yield
         finally:
             if old_kwargs is not None:

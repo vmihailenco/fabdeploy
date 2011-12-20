@@ -96,6 +96,31 @@ You can also temporarily set log path::
 
 This works for all variables and all tasks.
 
+Multiple databases
+------------------
+
+fabconf.py::
+
+    PROD_CONF = {
+        # default DB
+        'db_name': 'name1',
+        'db_user': 'user1',
+        'db_password': 'pass1',
+        # logging DB
+        'loggingdb.db_name': 'name2',
+        'loggingdb.db_user': 'user2',
+        'loggingdb.db_password': 'pass2',
+    }
+
+fabfile.py::
+
+    from fabdeploy import postgres
+
+    @task
+    def dump_db():
+        postgres.dump.run()  # dump default DB
+        postgres.dump.run(_namespace='loggingdb.')  # dump logging DB
+
 Built-in tasks customization
 ----------------------------
 

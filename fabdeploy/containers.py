@@ -26,12 +26,12 @@ class MultiSourceDict(MutableMapping):
     """
 
     _attrs = (
-        'name',
-        'conf',
-        'permanent_conf',
-        'task',
-        'task_conf_keys',
-        'task_kwargs')
+        '_name',
+        '_conf',
+        '_permanent_conf',
+        '_task',
+        '_task_conf_keys',
+        '_task_kwargs')
 
     def __init__(
         self,
@@ -40,54 +40,54 @@ class MultiSourceDict(MutableMapping):
         task_kwargs=None,
         permanent_conf=None,
         name=None):
-        self.name = name or ''
-        self.conf = conf or {}
-        self.permanent_conf = permanent_conf or self
+        self._name = name or ''
+        self._conf = conf or {}
+        self._permanent_conf = permanent_conf or self
 
-        self.task = task
-        self.task_conf_keys = set()
-        for name, value in inspect.getmembers(self.task):
+        self._task = task
+        self._task_conf_keys = set()
+        for name, value in inspect.getmembers(self._task):
             if hasattr(value, '_is_conf'):
-                self.task_conf_keys.add(name)
+                self._task_conf_keys.add(name)
 
-        self.task_kwargs = task_kwargs or {}
+        self._task_kwargs = task_kwargs or {}
 
     def process_conf(self, conf, name):
         value = conf[name]
         if callable(value) and hasattr(value, '_is_conf'):
             value = value(self)
-            if name in self.task_kwargs:
-                self.permanent_conf[name] = self.task_kwargs[name]
+            if name in self._task_kwargs:
+                self._permanent_conf[name] = self._task_kwargs[name]
         return value
 
     def get_value(self, name, use_prompt=True):
-        if name in self.task_kwargs:
-            return self.process_conf(self.task_kwargs, name)
+        if name in self._task_kwargs:
+            return self.process_conf(self._task_kwargs, name)
 
-        if name in self.task_conf_keys:
+        if name in self._task_conf_keys:
             # delete to avoid recursion
-            self.task_conf_keys.remove(name)
-            r = getattr(self.task, name)()
-            self.task_conf_keys.add(name)
+            self._task_conf_keys.remove(name)
+            r = getattr(self._task, name)()
+            self._task_conf_keys.add(name)
             return r
 
-        if name not in self.conf:
+        if name not in self._conf:
             if isinstance(name, basestring) and not name.startswith('_') and \
                     use_prompt:
-                self.conf[name] = prompt('%s.%s = ' % (self.name, name))
-                self.permanent_conf[name] = self.conf[name]
+                self._conf[name] = prompt('%s.%s = ' % (self._name, name))
+                self._permanent_conf[name] = self._conf[name]
             else:
                 raise MissingVarException(name)
 
-        return self.process_conf(self.conf, name)
+        return self.process_conf(self._conf, name)
 
     def set_value(self, name, value):
-        self.task_kwargs[name] = value
+        self._task_kwargs[name] = value
 
     def get_keys(self):
-        keys = self.task_conf_keys.copy()
-        keys.update(self.conf.keys())
-        keys.update(self.task_kwargs.keys())
+        keys = self._task_conf_keys.copy()
+        keys.update(self._conf.keys())
+        keys.update(self._task_kwargs.keys())
         return keys
 
     def setdefault(self, key, default=None):
@@ -143,11 +143,11 @@ class MultiSourceDict(MutableMapping):
 
     def copy(self):
         return MultiSourceDict(
-            conf=self.con,
-            task=self.task,
-            task_kwargs=self.task_kwargs,
-            permanent_conf=self.permanent_conf,
-            name=self.name)
+            conf=self._conf,
+            task=self._task,
+            task_kwargs=self._task_kwargs,
+            permanent_conf=self._permanent_conf,
+            name=self._name)
 
     def __repr__(self):
         return repr(dict(self))
