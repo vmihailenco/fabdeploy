@@ -9,7 +9,6 @@ from .task import Task
 __all__ = ['push']
 
 
-
 class Push(Task):
     @conf
     def exclude_string(self):
@@ -46,8 +45,8 @@ class Push(Task):
         local('rm %(src_file)s' % self.conf)
         with cd(self.conf.target_path):
             run('tar '
-                '--extract'
-                '--gunzip'
+                '--extract '
+                '--gunzip '
                 '--file %(target_file)s' % self.conf)
             run('rm %(target_file)s' % self.conf)
 
