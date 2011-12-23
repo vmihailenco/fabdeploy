@@ -108,7 +108,9 @@ class CreateUser(Task):
 
     def do(self):
         users.create.run(user=self.conf.fabd_user)
-        ssh.push_key.run(pub_key_file='~/.ssh/id_rsa.pub')
+        ssh.push_key.run(
+            user=self.conf.fabd_user,
+            pub_key_file='~/.ssh/id_rsa.pub')
         users.grant_sudo.run(user=self.conf.fabd_user)
 
 create_user = CreateUser()
