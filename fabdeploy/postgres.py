@@ -27,7 +27,7 @@ class Dump(Task):
 
     @conf
     def filepath(self):
-        return posixpath.join(self.conf.backups_path, self.conf.filename)
+        return posixpath.join(self.conf.backup_path, self.conf.filename)
 
     @conf
     def command(self):
@@ -47,7 +47,7 @@ dump = Dump()
 
 class ListDumps(Task):
     def dumps(self):
-        dumps = list(files.list_files(self.conf.backups_path))
+        dumps = list(files.list_files(self.conf.backup_path))
         dumps.sort(reverse=True)
         return dumps
 
@@ -87,7 +87,7 @@ class Restore(Task):
         if self.conf.filename.startswith('/'):
             return self.conf.filename
         else:
-            return posixpath.join(self.conf.backups_path, self.conf.filename)
+            return posixpath.join(self.conf.backup_path, self.conf.filename)
 
     @conf
     def command(self):

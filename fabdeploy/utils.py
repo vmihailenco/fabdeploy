@@ -132,15 +132,16 @@ def upload_config_template(name, to=None, context=None, skip_unexistent=False,
                     **kwargs)
 
 
-def unprefix_conf(conf, prefixes):
-    for prefix in prefixes:
+# TODO: move to conf
+def unprefix_conf(conf, namespaces):
+    for ns in namespaces:
         for key in conf.keys():
-            if key.startswith(prefix):
-                conf[key[len(prefix):]] = conf[key]
-    return conf
+            if key.startswith(ns):
+                conf[key[len(ns):]] = conf[key]
 
 
-def get_home_path(user):
+# TODO: move to conf
+def home_path(user):
     if user == 'root':
         return '/root'
     else:

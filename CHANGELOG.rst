@@ -1,0 +1,2 @@
+- ``src_path`` and ``env_path`` now contain ``version``.
+- ``backups_path`` renamed to ``backup_path``.

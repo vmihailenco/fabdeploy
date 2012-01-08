@@ -1,36 +1,47 @@
-from fabric.api import sudo
+from fabric.api import sudo, run
 
 from .containers import conf
 from .task import Task
-from .utils import get_home_path, upload_config_template
+from .utils import home_path, upload_config_template
 
 
-__all__ = ['install', 'setup_conf']
+__all__ = ['install', 'push_config']
 
 
 class Install(Task):
-    def before_do(self):
-        self.conf.setdefault('upgrade', False)
+    USE_SUDO = False
+
+    def cmd(self, command):
+        if self.USE_SUDO:
+            return sudo(command)
+        else:
+            return run(command)
 
     @conf
     def options(self):
-        options = self.conf.get('options', '')
-        if self.conf.upgrade:
+#        options = self.conf.get('options', '')
+        options = ''
+        if self.conf.get('upgrade', False):
             options += ' --upgrade'
+        if self.conf.get('cache', True):
+            if '_pip_cache_chmod' not in self.conf:
+                sudo('chmod 0777 %(pip_cache_path)s' % self.conf)
+                self.conf.set_globally('_pip_cache_chmod', True)
+            options += ' --download-cache %(pip_cache_path)s' % self.conf
         return options
 
     def do(self):
-        sudo('pip install %(options)s %(app)s' % self.conf)
+        self.cmd('pip install %(options)s %(app)s' % self.conf)
 
 install = Install()
 
 
-class SetupConf(Task):
+class PushConfig(Task):
     """Sets up pip.conf file"""
 
     @conf
     def home_path(self):
-        return get_home_path(self.conf.user)
+        return home_path(self.conf.user)
 
     def do(self):
         sudo('mkdir --parents %(home_path)s/.pip' % self.conf)
@@ -41,4 +52,4 @@ class SetupConf(Task):
         sudo('chown --recursive %(user)s:%(user)s %(home_path)s/.pip' %
              self.conf)
 
-setup_conf = SetupConf()
+push_config = PushConfig()

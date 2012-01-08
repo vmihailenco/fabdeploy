@@ -1,6 +1,4 @@
-import posixpath
-
-from fabric.api import run, sudo, cd
+from fabric.api import run, sudo
 
 from . import pip
 from .containers import conf
@@ -8,11 +6,22 @@ from .task import Task
 from .utils import inside_virtualenv, inside_project
 
 
-__all__ = ['pip_install', 'pip_install_req', 'create', 'remove']
+__all__ = [
+    'pip_install',
+    'pip_install_req',
+    'create',
+    'make_relocatable',
+    'remove'
+]
 
 
 class PipInstall(pip.Install):
-    do = inside_virtualenv(pip.Install.do)
+    USE_SUDO = False
+
+    @inside_virtualenv
+    def do(self):
+        with pip.install.tmp_conf(self.conf):
+            pip.install.do()
 
 pip_install = PipInstall()
 
@@ -28,11 +37,14 @@ class PipInstallReq(PipInstall):
         options += ' --requirement %(filepath)s' % self.conf
         return options
 
+    @conf
+    def app(self):
+        return ''
+
     @inside_project
-    @inside_virtualenv
     def do(self):
-        run('pip install %(options)s '
-            '--download-cache %(pip_cache_path)s ' % self.conf)
+        with pip_install.tmp_conf(self.conf):
+            pip_install.do()
 
 pip_install_req = PipInstallReq()
 
@@ -43,10 +55,16 @@ class Create(Task):
         return '--no-site-packages'
 
     def do(self):
-        with cd(posixpath.dirname(self.conf.env_path)):
-            run('virtualenv %(options)s %(instance_name)s' % self.conf)
+        run('virtualenv %(options)s %(env_path)s' % self.conf)
 
 create = Create()
+
+
+class MakeRelocatable(Task):
+    def do(self):
+        run('virtualenv --relocatable %(env_path)s' % self.conf)
+
+make_relocatable = MakeRelocatable()
 
 
 class Remove(Task):

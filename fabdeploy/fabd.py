@@ -26,12 +26,16 @@ class Mkdirs(Task):
     """
 
     def do(self):
-        dirpathes = []
+        home_dirs, sudo_dirs = [], []
         for k, v in self.conf.items():
             if k.endswith('_path'):
-                dirpathes.append(v)
+                if v.startswith(self.conf.home_path):
+                    home_dirs.append(v)
+                else:
+                    sudo_dirs.append(v)
 
-        run('mkdir --parents %s' % ' '.join(dirpathes))
+        run('mkdir --parents %s' % ' '.join(home_dirs))
+        sudo('mkdir --parents %s' % ' '.join(sudo_dirs))
 
 mkdirs = Mkdirs()
 
@@ -54,13 +58,15 @@ class Debug(Task):
     """Print config variable."""
 
     def do(self):
-        if self.conf['var']:
+        if 'var' in self.conf:
             puts(self.conf[self.conf.var])
         else:
             puts('\n' + pprint.pformat(dict(self.conf)))
 
-    def run(self, var=None):
-        super(Debug, self).run(var=var)
+    def run(self, var=None, **kwargs):
+        if var is not None:
+            kwargs.setdefault('var', var)
+        super(Debug, self).run(**kwargs)
 
 debug = Debug()
 
@@ -72,9 +78,11 @@ class Conf(Task):
         except ImportError:
             abort('Can not import fabconf.py.')
 
+        self.conf.set_globally('conf_name', self.conf.name)
+
         name = '%s_CONF' % self.conf.name.upper()
         conf = getattr(config, name)
-        conf.update(**self._kwargs)
+        conf.update(**self.task_kwargs)
 
         return conf
 
@@ -84,7 +92,6 @@ class Conf(Task):
 
     def run(self, name, **kwargs):
         kwargs.setdefault('name', name)
-        self._kwargs = kwargs
         return super(Conf, self).run(**kwargs)
 
 conf = Conf()

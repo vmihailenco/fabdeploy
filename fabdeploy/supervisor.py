@@ -1,4 +1,7 @@
-from fabric.api import sudo, settings
+import posixpath
+
+from fabric.api import cd, run, sudo, settings
+from fabric.contrib import files
 
 from .containers import conf
 from .task import Task as BaseTask
@@ -11,6 +14,7 @@ __all__ = [
     'ctl',
     'shutdown',
     'update',
+    'reload',
     'push_d_config',
     'push_configs',
     'start_program',
@@ -20,7 +24,9 @@ __all__ = [
 
 
 class Task(BaseTask):
-    pass
+    @conf
+    def supervisor_config_path(self):
+        return posixpath.join(self.conf.etc_path, 'supervisor')
 
 
 class Install(Task):
@@ -33,7 +39,8 @@ install = Install()
 class D(Task):
     def do(self):
         with settings(warn_only=True):
-            sudo('supervisord --configuration=%(supervisord_config)s' % self.conf)
+            sudo('supervisord --configuration=%(supervisord_config)s' %
+                 self.conf)
 
 d = D()
 
@@ -70,12 +77,21 @@ class Update(Ctl):
 update = Update()
 
 
+class Reload(Ctl):
+    @conf
+    def command(self):
+        return 'reload'
+
+reload = Reload()
+
+
 class PushDConfig(Task):
     def do(self):
         if 'supervisord_config_template' in self.conf:
-            upload_config_template(self.conf.supervisord_config_template,
-                                   self.conf.supervisord_config,
-                                   context=self.conf)
+            upload_config_template(
+                self.conf.supervisord_config_template,
+                self.conf.supervisord_config,
+                context=self.conf)
 
 push_d_config = PushDConfig()
 
@@ -83,17 +99,32 @@ push_d_config = PushDConfig()
 class PushConfigs(Task):
     """Push configs for ``supervisor_programs``."""
 
+    @conf
+    def configs_glob(self):
+        return '    %(active_etc_link)s/supervisor/*.conf'
+
     def do(self):
+        with cd(self.conf.supervisor_config_path):
+            # force is needed when folder is empty
+            run('rm --force *.conf')
+
         push_d_config.run()
 
         for program in self.conf.supervisor_programs:
             config = '%s.conf' % program
             from_filepath = 'supervisor/%s' % config
-            to_filepath = '%s/%s' % (self.conf.supervisor_config_path,
-                                     config)
-            upload_config_template(from_filepath,
-                                   to_filepath,
-                                   context=self.conf)
+            to_filepath = posixpath.join(
+                self.conf.supervisor_config_path,
+                config)
+            upload_config_template(
+                from_filepath,
+                to_filepath,
+                context=self.conf)
+
+        files.append(
+            self.conf.supervisord_config,
+            self.conf.configs_glob,
+            use_sudo=True)
 
 push_configs = PushConfigs()
 

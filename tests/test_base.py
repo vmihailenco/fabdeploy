@@ -19,7 +19,7 @@ def test_update_conf():
     assert conf.etc_path == '/home/fabdeploy/envs/fabdeploy/etc'
     assert conf.var_path == '/home/fabdeploy/envs/fabdeploy/var'
     assert conf.log_path == '/home/fabdeploy/envs/fabdeploy/var/log'
-    assert conf.backups_path == '/home/fabdeploy/envs/fabdeploy/var/backups'
+    assert conf.backup_path == '/home/fabdeploy/envs/fabdeploy/var/backup'
 
     assert conf.time_format == '%Y.%m.%d-%H.%M'
     assert conf.sudo_user == 'root'

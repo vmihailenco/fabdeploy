@@ -10,7 +10,7 @@ from .containers import conf, MissingVarException
 from .task import Task
 from .users import list_users
 from .files import read_file, exists
-from .utils import get_home_path, split_lines
+from .utils import home_path, split_lines
 
 
 __all__ = ['push_key', 'list_authorized_files', 'list_keys', 'enable_key',
@@ -26,8 +26,7 @@ class PushKey(Task):
         with open(self.conf.abs_pub_key_file, 'rt') as f:
             ssh_key = f.read()
 
-        home_path = get_home_path(self.conf.user)
-        with cd(home_path):
+        with cd(home_path(self.conf.user)):
             sudo('mkdir --parents .ssh')
             files.append('.ssh/authorized_keys', ssh_key, use_sudo=True)
             sudo('chown --recursive %(user)s:%(user)s .ssh' % self.conf)
@@ -44,7 +43,7 @@ class SshManagementTask(Task):
     def authorized_file(self):
         if 'user' in self.conf and self.conf.user:
             return posixpath.join(
-                get_home_path(self.conf.user), '.ssh', 'authorized_keys')
+                home_path(self.conf.user), '.ssh', 'authorized_keys')
         raise MissingVarException()
 
 
@@ -54,7 +53,7 @@ class ListAuthorizedFiles(SshManagementTask):
 
         authorized_files = []
         for user in users:
-            dirpath = get_home_path(user)
+            dirpath = home_path(user)
             authorized_file = '%s/.ssh/authorized_keys' % dirpath
             if exists(authorized_file, use_sudo=True, shell=False):
                 authorized_files.append((user, authorized_file))

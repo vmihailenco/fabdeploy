@@ -7,43 +7,41 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from fabric.api import env
-
 from .containers import conf
-from .utils import get_home_path
+from .utils import home_path
 
 
-def get_config_template_path(name):
-    for dir in env.conf.config_templates_pathes:
+def config_template_path(name, conf=None):
+    for dir in conf.config_templates_pathes:
         path = os.path.join(dir, name)
         if os.path.exists(path):
             return path
 
 
 # TODO: this should be renamed since in returns relative path for jinja2
-def get_django_lpath(name):
-    return os.path.join(env.conf.django_ldir, name)
+def django_lpath(name, conf=None):
+    return os.path.join(conf.django_ldir, name)
 
 
-def get_django_path(name):
-    return posixpath.join(env.conf.django_path, name)
+def django_path(name, conf=None):
+    return posixpath.join(conf.django_path, name)
 
 
-def get_pip_req_path(name):
-    return posixpath.join(env.conf.pip_req_path, name)
+def pip_req_path(name, conf=None):
+    return posixpath.join(conf.pip_req_path, name)
 
 
 @conf
 def os_codename(conf):
     from fabdeploy import system
-    conf.os = system.os_codename.codename()
+    conf.set_globally('os', system.os_codename.codename())
     return conf.os
 
 
 @conf
 def cpu_count(conf):
     from fabdeploy import system
-    conf.cpu_count = system.cpu_count.cpu_count()
+    conf.set_globally('cpu_count', system.cpu_count.cpu_count())
     return conf.cpu_count
 
 
@@ -52,31 +50,52 @@ def current_time(conf):
     return datetime.datetime.utcnow().strftime(conf.time_format)
 
 
+@conf
+def version(conf):
+    conf.set_globally('version', conf.current_time)
+    return conf.version
+
+
+def make_version(name, path_name, conf=None):
+    path = getattr(conf, path_name)
+    version_path = conf.version_path
+    new_version_path = posixpath.join(conf.home_path, name)
+    return path.replace(version_path, new_version_path)
+
+
 DEFAULTS = OrderedDict([
     ('conf_name', 'default'),
     ('address', '%s@localhost' % os.environ['USER']),
 
     ('os', os_codename),
     ('cpu_count', cpu_count),
+    ('time_format', '%Y.%m.%d-%H.%M.%S'),
+    ('current_time', current_time),
 
     ('instance_name', '%(user)s'),
-    ('django_path_getter', get_django_path),
-    ('django_lpath_getter', get_django_lpath),
+
+    ('version', version),
+    ('versions', ['active', 'last', 'previous']),
+    ('make_version', make_version),
+
+    ('django_path_getter', django_path),
+    ('django_lpath_getter', django_lpath),
 
     # directory name inside src_path that contains project
     # this is useful if your project is not in git/hg repo root dir
     ('project_dir', ''),
     # directory name that contains manage.py file (django project root)
     ('django_dir', ''),
-    ('home_path', conf(lambda conf: get_home_path(conf.user))),
-    ('src_path', ['%(home_path)s', 'src', '%(instance_name)s']),
+    ('home_path', conf(lambda conf: home_path(conf.user))),
+    ('version_path', ['%(home_path)s', '%(version)s']),
+    ('src_path', ['%(version_path)s', 'src']),
     ('project_path', ['%(src_path)s', '%(project_dir)s']),
     ('django_path', ['%(project_path)s', '%(django_dir)s']),
-    ('env_path', ['%(home_path)s', 'envs', '%(instance_name)s']),
+    ('env_path', ['%(version_path)s', 'env']),
     ('etc_path', ['%(env_path)s', 'etc']),
     ('var_path', ['%(env_path)s', 'var']),
     ('log_path', ['%(var_path)s', 'log']),
-    ('backups_path', ['%(var_path)s', 'backups']),
+    ('backup_path', ['%(var_path)s', 'backup']),
 
     ('project_ldir', ''),
     ('django_ldir', '%(django_dir)s'),
@@ -85,8 +104,8 @@ DEFAULTS = OrderedDict([
     ('project_lpath', ['%(src_lpath)s', '%(project_ldir)s']),
     ('django_lpath', ['%(src_lpath)s', '%(django_ldir)s']),
 
-    ('time_format', '%Y.%m.%d-%H.%M'),
-    ('current_time', current_time),
+    ('version_data_file', ['%(version_path)s', '.fabdeploy']),
+
     # user that have sudo right
     # this is useful, because usually deploy user don't have sudo right
     ('sudo_user', 'root'),
@@ -94,13 +113,14 @@ DEFAULTS = OrderedDict([
     ('server_admin', 'admin@%(host)s'),
 
     ('apache_processes', 1),
+    # conf decorator is used to achieve lazy evaluation
     ('apache_threads', conf(lambda conf: conf.cpu_count * 2 + 1)),
     ('uwsgi_processes', conf(lambda conf: conf.cpu_count * 2 + 1)),
 
-    ('config_templates_lpath_getter', get_config_template_path),
+    ('config_templates_lpath_getter', config_template_path),
     ('config_templates_pathes', [
         'config_templates/%(conf_name)s',
-        'config_templates'
+        'config_templates',
     ]),
 
     # django settings: manage.py --settings=%(settings)s
@@ -120,8 +140,8 @@ DEFAULTS = OrderedDict([
     ('postgres.db_root_user', 'postgres'),
     ('postgres.db_port', 5432),
 
-    ('pip_cache_path', ['%(var_path)s', 'pip']),
-    ('pip_req_path_getter', get_pip_req_path),
+    ('pip_cache_path', '/var/run/pip-download-cache'),
+    ('pip_req_path_getter', pip_req_path),
     ('pip_req_path', 'reqs'),
     ('pip_req_name', 'active.txt'),
 
@@ -131,3 +151,9 @@ DEFAULTS = OrderedDict([
     ('supervisor_config_path', ['%(etc_path)s', 'supervisor']),
     ('supervisord_config', '/etc/supervisord.conf'),
 ])
+
+for v in ['previous', 'last', 'active']:
+    DEFAULTS.update({
+        '%s_version' % v:
+            lambda path_name, conf=None: make_version(v, path_name, conf=conf),
+    })

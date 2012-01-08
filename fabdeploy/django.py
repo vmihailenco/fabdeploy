@@ -6,7 +6,14 @@ from .task import Task
 from .utils import inside_django
 
 
-__all__ = ['push_settings', 'manage', 'syncdb', 'migrate', 'collectstatic']
+__all__ = [
+    'push_settings',
+    'manage',
+    'syncdb',
+    'migrate',
+    'collectstatic',
+    'shell',
+]
 
 
 class PushSettings(Task):
@@ -19,8 +26,11 @@ class PushSettings(Task):
         return self.conf.django_path_getter(self.conf.local_settings_file)
 
     def do(self):
-        files.upload_template(self.conf.from_file, self.conf.to_file,
-                              context=self.conf, use_jinja=True)
+        files.upload_template(
+            self.conf.from_file,
+            self.conf.to_file,
+            context=self.conf,
+            use_jinja=True)
 
 push_settings = PushSettings()
 
@@ -63,3 +73,11 @@ class Collectstatic(Manage):
         return 'collectstatic --noinput'
 
 collectstatic = Collectstatic()
+
+
+class Shell(Manage):
+    @conf
+    def command(self):
+        return 'shell'
+
+shell = Shell()
