@@ -3,7 +3,6 @@ import pprint
 from fabric.api import env, run, sudo, puts, abort
 
 from . import users, ssh
-from .base import setup_conf
 from .containers import conf as conf_dec
 from .task import Task
 
@@ -61,7 +60,10 @@ class Debug(Task):
         if 'var' in self.conf:
             puts(self.conf[self.conf.var])
         else:
-            puts('\n' + pprint.pformat(dict(self.conf)))
+            out = '\n'
+            for k, v in self.conf.items():
+                out += '%s = %s\n' % (k, v)
+            puts(out)
 
     def run(self, var=None, **kwargs):
         if var is not None:
@@ -72,22 +74,23 @@ debug = Debug()
 
 
 class Conf(Task):
-    def base_conf(self):
+    def _conf_name(self, name):
+        return ''.join([p[:1].upper() + p[1:] for p in name.split('_')]) + 'Conf'
+
+    def create_conf(self):
         try:
             import fabconf as config
         except ImportError:
             abort('Can not import fabconf.py.')
 
-        self.conf.set_globally('conf_name', self.conf.name)
-
-        name = '%s_CONF' % self.conf.name.upper()
-        conf = getattr(config, name)
-        conf.update(**self.task_kwargs)
+        name = self._conf_name(self.conf.name)
+        conf = getattr(config, name)(name='fabd.conf')
+        conf.set_globally('conf_name', self.conf.name)
 
         return conf
 
     def do(self):
-        env.conf = setup_conf(self.base_conf())
+        env.conf = self.create_conf()
         env.hosts = [env.conf.address]
 
     def run(self, name, **kwargs):

@@ -1,3 +1,5 @@
+import os
+
 from fabric.api import run, sudo
 
 from . import pip
@@ -29,7 +31,7 @@ pip_install = PipInstall()
 class PipInstallReq(PipInstall):
     @conf
     def filepath(self):
-        return self.conf.pip_req_path_getter(self.conf.pip_req_name)
+        return os.path.join(self.conf.pip_req_lpath, self.conf.pip_req_name)
 
     @conf
     def options(self):

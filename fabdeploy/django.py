@@ -1,3 +1,6 @@
+import os
+import posixpath
+
 from fabric.api import run
 from fabric.contrib import files
 
@@ -19,11 +22,13 @@ __all__ = [
 class PushSettings(Task):
     @conf
     def from_file(self):
-        return self.conf.django_lpath_getter(self.conf.remote_settings_file)
+        return os.path.join(
+            self.conf.django_dir, self.conf.remote_settings_lfile)
 
     @conf
     def to_file(self):
-        return self.conf.django_path_getter(self.conf.local_settings_file)
+        return posixpath.join(
+            self.conf.django_path, self.conf.local_settings_file)
 
     def do(self):
         files.upload_template(

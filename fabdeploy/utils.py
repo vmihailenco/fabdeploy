@@ -117,7 +117,7 @@ def inside_django(func):
 
 def upload_config_template(name, to=None, context=None, skip_unexistent=False,
                            **kwargs):
-    config_template = env.conf.config_templates_lpath_getter(name)
+    config_template = env.conf.config_template_lpath(name)
     if to is None:
         to = posixpath.join(env.conf.etc_path, name)
     if context is None:

@@ -5,13 +5,13 @@ from contextlib import contextmanager
 from fabric.api import env, settings
 from fabric.tasks import Task as BaseTask
 
-from .containers import MultiSourceDict, MissingVarException
+from .containers import BaseConf, MissingVarException
 from .utils import unprefix_conf
 
 
 class Task(BaseTask):
     name = None
-    curr_conf_names = set()
+    _curr_conf_names = set()
 
     def __init__(self, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
@@ -36,20 +36,23 @@ class Task(BaseTask):
                 keys.add(name)
         return keys
 
-    def conf_value(self, name, null=object):
-        self.curr_conf_names.add(name)
+    def conf_value(self, name, null=object()):
+        if name in self._curr_conf_names:
+            raise MissingVarException
+        self._curr_conf_names.add(name)
         value = null
 
         if name in self.task_kwargs:
             value = self.task_kwargs[name]
-        try:
-            attr = getattr(self, name)
-            if hasattr(attr, '_is_conf'):
-                value = attr()
-        except AttributeError:
-            pass
+        else:
+            try:
+                attr = getattr(self, name)
+                if hasattr(attr, '_is_conf'):
+                    value = attr()
+            except AttributeError:
+                pass
 
-        self.curr_conf_names.remove(name)
+        self._curr_conf_names.remove(name)
         if value is not null:
             return value
         else:
@@ -65,9 +68,9 @@ class Task(BaseTask):
     def _namespaces(self, kwargs):
         module = self._get_module()
         ns = [
-            '%s.' % module,
-            '%s.' % self.name,
-            '%s.%s.' % (module, self.name),
+            '%s__' % module,
+            '%s__' % self.name,
+            '%s__%s__' % (module, self.name),
         ]
         if '_namespace' in kwargs:
             ns.append(kwargs['_namespace'])
@@ -80,12 +83,11 @@ class Task(BaseTask):
 
             if conf is None:
                 self.conf = env.conf.copy()
-                self.conf.set_task(self)
                 self.conf.set_global_conf(env.conf)
+                self.conf.set_task(self)
             else:
-                assert isinstance(conf, MultiSourceDict)
+                assert isinstance(conf, BaseConf)
                 self.conf = conf.copy()
-
             self.conf.set_name('%s.%s' % (self._get_module(), self.name))
             unprefix_conf(self.conf, self._namespaces(self.task_kwargs))
 

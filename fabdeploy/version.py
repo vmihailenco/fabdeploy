@@ -49,9 +49,8 @@ create = Create()
 
 class Activate(Task):
     def do(self):
+        run('rm --force %(previous_version_link)s' % self.conf)
         # save previous version
-        if files.exists(self.conf.previous_version_link):
-            run('rm %(previous_version_link)s' % self.conf)
         if files.exists(self.conf.last_version_link):
             run('cp '
                 '--no-dereference '
@@ -59,13 +58,11 @@ class Activate(Task):
                 '%(last_version_link)s %(previous_version_link)s' % self.conf)
 
         # save last version
-        if files.exists(self.conf.last_version_link):
-            run('rm %(last_version_link)s' % self.conf)
+        run('rm --force %(last_version_link)s' % self.conf)
         run('ln --symbolic %(version_path)s %(last_version_link)s' % self.conf)
 
         # activate current version
-        if files.exists(self.conf.active_version_link):
-            run('rm %(active_version_link)s' % self.conf)
+        run('rm --force %(active_version_link)s' % self.conf)
         run('ln '
             '--symbolic '
             '%(version_path)s %(active_version_link)s' % self.conf)
