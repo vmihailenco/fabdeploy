@@ -11,8 +11,16 @@ There is full working example: https://github.com/vladimir-webdev/fabdeploy-exam
 
 Create fabconf.py::
 
-    STAGING_CONF = {}
-    PROD_CONF = {}
+    from fabdeploy.api import DefaultConf
+
+    class BaseConf(DefaultConf):
+        django_dir = 'project_name'
+
+    class StagingConf(BaseConf):
+        address = 'user@staging-host.com'
+
+    class ProdConf(BaseConf):
+        address = 'user@prod-host.com'
 
 Create fabfile.py::
 
@@ -38,7 +46,7 @@ Fabdeploy uses two system (linux) users:
 In Ubuntu ``root`` user is disabled by default. You can create special
 ``fabdeploy`` user using following command::
 
-    fab fabd.empty_conf:address=user@host,sudo_user=user fabd.create_user
+    fab fabd.default_conf:address=user@host,sudo_user=user fabd.create_user
 
 List of available tasks::
 
@@ -76,16 +84,14 @@ Control where logs are stored
 
 fabconf.py::
 
-    PROD_CONF = {
-        'my_task.log_path': '/var/log/my_task',
-    }
+    from fabdeploy.api import DefaultConf
+
+    class ProdConf(DefaultConf):
+        my_task__log_path = '/var/log/my_task'
 
 fabfile.py::
 
-    @task
-    def prod():
-        fabconf('prod')
-
+    from fabdeploy.api import Task
 
     class MyTask(Task):
         def do(self):
@@ -96,12 +102,12 @@ fabfile.py::
 
 Output::
 
-    $ fab prod my_task
+    $ fab fabd.conf:prod my_task
     /var/log/my_task
 
 You can also temporarily set log path::
 
-    $ fab prod my_task:log_path='/var'
+    $ fab fabd.conf:prod my_task:log_path='/var'
     /var
 
 This works for all variables and all tasks.
@@ -111,16 +117,17 @@ Multiple databases
 
 fabconf.py::
 
-    PROD_CONF = {
+    from fabdeploy.api import DefaultConf
+
+    class ProdConf(DefaultConf):
         # default DB
-        'db_name': 'name1',
-        'db_user': 'user1',
-        'db_password': 'pass1',
+        db_name = 'name1'
+        db_user = 'user1'
+        db_password = 'pass1'
         # logging DB
-        'loggingdb.db_name': 'name2',
-        'loggingdb.db_user': 'user2',
-        'loggingdb.db_password': 'pass2',
-    }
+        loggingdb__db_name = 'name2'
+        loggingdb__db_user = 'user2'
+        loggingdb__db_password = 'pass2'
 
 fabfile.py::
 
@@ -129,7 +136,7 @@ fabfile.py::
     @task
     def dump_db():
         postgres.dump.run()  # dump default DB
-        postgres.dump.run(_namespace='loggingdb.')  # dump logging DB
+        postgres.dump.run(_namespace='loggingdb__')  # dump logging DB
 
 Built-in tasks customization
 ----------------------------
@@ -153,118 +160,102 @@ Different DBs for development and production
 
 fabconf.py::
 
-    DEV_CONF = {
-        'address': 'user@localhost',
-        'db': 'mysql',
-    }
+    from fabdeploy import api
+    from fabdeploy.api import DefaultConf
 
+    class DevConf(DefaultConf):
+        address = 'user@localhost'
+        db = getattr(fabdeploy, 'mysql')
 
-    PROD_CONF = {
-        'address': 'user@localhost',
-        'db': 'postgres',
-    }
+    class ProdConf(DefaultConf):
+        address = 'user@localhost'
+        db = getattr(fabdeploy, 'postgres')
 
 fabfile.py::
 
     @task
-    def dev():
-        fabconf('dev')
-        env.conf.db = getattr(fabdeploy, env.conf.db)
-
-
-    @task
-    def prod():
-        fabconf('prod')
-        env.conf.db = getattr(fabdeploy, env.conf.db)
-
-
-    @task
     def execute():
         print env.conf.db.execute
-
-Executing tasks
-===============
-
-You can pass arguments to tasks using following ways:
-
-- Call ``setup_fabdeploy()`` to setup empty configuration and host ``$USER@localhost``. You will be prompted for any missing variable (once per task)::
-
-    from fabdeploy.api import setup_fabdeploy
-    setup_fabdeploy()
-
-- Pass global configuration to ``setup_conf()``::
-
-    from fabdeploy.api import setup_conf
-
-    @task
-    def staging():
-        env.conf = setup_conf(dict(
-            address='user@host',
-            db_name='mydb',
-            db_user='myuser'
-        ))
-        env.hosts = [env.address]
-
-  Then tasks can be runned without arguments::
-
-    fab staging postgres.create_db
-
-- Pass arguments directly to task::
-
-    fab staging postgres.create_db:db_name=mydb,db_user=myuser
 
 Configuration
 =============
 
 There are some conventions how to configure fabdeploy:
 
-- You should use Python OrderedDict, because often order is important::
+- You should extend DefaultConf::
 
-    from collections import OrderedDict
+    from fabdeploy.api import DefaultConf
 
-    BASE_CONF = OrderedDict([
-        ('sudo_user', 'fabdeploy'),
-    ])
+    class BaseConf(DefaultConf):
+        pass
 
 - Each value can contain Python formatting::
 
-    BASE_CONF = OrderedDict([
-        ('supervisor.log_dir', '%(log_dir)s/supervisor'),
-    ])
+    class BaseConf(DefaultConf):
+        supervisor__log_dir = '%(var_dir)s/log/supervisor'
 
-- Remote dirs should have posfix ``_dir``. You can and should use task ``fabd.mkdirs`` to create all remote dirs with one command. It will look like this::
+- Remote pathes should have posfix ``_path``. You can and should use
+  task ``fabd.mkdirs`` to create all remote dirs with one command. It
+  will look like this::
 
-    $ fab fabd.mkdirs
+    $ fab fabd.conf:staging_conf fabd.mkdirs
     mkdir --parents /path/to/dir1 /path/to/dir2 /path/to/dir3
 
-- Local dirs have postfix ``_ldir`` (similar to Fabric ``cd`` and ``lcd``).
+- Remote dirs (e.g. ``var``) have postfix ``_dir``.
 
-- Dirs (postfix ``_dir`` and ``_ldir``) and pathes (postfix ``_path`` and ``_lpath``) can be lists. This list will be passed to ``os.path.join()`` or ``posixpath.join()``. Previous example can look like this::
+- Local pathes have postfix ``_lpath``. Local dirs have postfix
+  ``_ldir``. This is similar to Fabric ``cd`` and ``lcd`` tasks.
 
-    BASE_CONF = OrderedDict([
-        ('supervisor.log_dir', ['%(log_dir)s', 'supervisor']),
-    ])
+- Dirs (postfix ``_dir`` and ``_ldir``) and pathes (postfix ``_path``
+  and ``_lpath``) can be Python lists. These lists will be passed to
+  ``os.path.join()`` or ``posixpath.join()``. Previous example can
+  look like this::
+
+    from fabdeploy.api import DefaultConf
+
+    class BaseConf(DefaultConf):
+        'supervisor__log_dir = ['%(var_dir)s', 'log', 'supervisor']
+
+- Function can be decorated with conf decorator. For example,
+  ``current_time`` task looks like this::
+
+    from fabdeploy.api import DefaultConf
+
+    class BaseConf(DefaultConf):
+        @conf
+        def current_time(self):
+            return datetime.datetime.utcnow().strftime(self.time_format)
+
+  You can use it in your task like this::
+
+    from fabdeploy.api import Task
+
+    class MyTask(Task):
+        def do(self):
+            puts(self.conf.current_time)
 
 - You can configure each task individually::
 
-    BASE_CONF = OrderedDict([
-        ('postgres.db_name', 'postgresql_db'), # module=postres
-        ('mysql.db_name', 'mysql_db'),         # module=mysql
-        ('mysql.create_db.db_user', 'root'),   # module=mysql, task=create_db
-    ])
+    class BaseConf(DefaultConf):
+        postgres__db_name = 'postgresql_db'  # module=postres
+        mysql__db_name = 'mysql_db'          # module=mysql
+        mysql__create_db__db_user = 'root'   # module=mysql, task=create_db
 
 Configuration is stored in task instance variable ``self.conf``. Each task has its own copy of configuration. Configuration variables are searched in following places:
 
 - task keyword argument ``var`` (``fab task:foo=bar``);
 - task instance method ``var()`` decorated with ``@conf()``;
-- key ``var`` in ``env.conf`` dict;
+- key ``var`` in ``env.conf``, which is populated by ``fabd.conf`` task;
 - ask user to provide variable ``var`` using fabric prompt.
+
+Global configuration is stored in ``env.conf``.
 
 Writing your task
 =================
 
 Your task is class-based fabric class except fabdeploy manages configuration for you::
 
+    from fabric.api import puts
     from fabdeploy.api import Task, conf
 
     class MessagePrinter(Task):
@@ -296,28 +287,9 @@ Fabfile example
 
 Typical fabfile may look like this::
 
-    from collections import OrderedDict
-    from fabric.api import task, settings
-    from fabdeploy.api import *
-
-
-    setup_fabdeploy()
-
-    BASE_CONF = OrderedDict(
-       ('django_dir', 'projectname'),
-       ('supervisor_programs', [
-           (1000, 'group', ['gunicorn'])
-       ])
-    )
-
-
-    @task
-    def prod():
-        conf = BASE_CONF.copy()
-        conf['address'] = 'user@prodhost.com'
-        env.conf = setup_conf(conf)
-        env.hosts = [env.conf.address]
-
+    from fabdeploy import monkey; monkey.patch_all()
+    from fabric.api import *
+    from fabdeploy.api import *; setup_fabdeploy()
 
     @task
     def install():
@@ -342,7 +314,6 @@ Typical fabfile may look like this::
     def setup():
         fabd.mkdirs.run()
 
-        gunicorn.push_config.run()
         nginx.push_gunicorn_config.run()
         nginx.restart.run()
 
@@ -350,19 +321,27 @@ Typical fabfile may look like this::
     @task
     def deploy():
         fabd.mkdirs.run()
+        version.create.run()
+
         postgres.dump.run()
 
         git.init.run()
         git.push.run()
-        django.push_settings.run()
+
         supervisor.push_configs.run()
+        django.push_settings.run()
+        gunicorn.push_config.run()
 
         virtualenv.create.run()
+        virtualenv.pip_install_req.run()
         virtualenv.pip_install.run(app='gunicorn')
+        virtualenv.make_relocatable.run()
 
         django.syncdb.run()
         django.migrate.run()
         django.collectstatic.run()
+
+        version.activate.run()
 
         supervisor.d.run()
         supervisor.restart_programs.run()

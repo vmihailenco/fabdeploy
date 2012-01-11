@@ -1,5 +1,3 @@
-import pprint
-
 from fabric.api import env, run, sudo, puts, abort
 
 from . import users, ssh
@@ -12,7 +10,7 @@ __all__ = [
     'remove_src',
     'debug',
     'conf',
-    'empty_conf',
+    'default_conf',
     'create_user'
 ]
 
@@ -77,7 +75,7 @@ class Conf(Task):
     def _conf_name(self, name):
         return ''.join([p[:1].upper() + p[1:] for p in name.split('_')]) + 'Conf'
 
-    def create_conf(self):
+    def get_conf(self):
         try:
             import fabconf as config
         except ImportError:
@@ -87,6 +85,12 @@ class Conf(Task):
         conf = getattr(config, name)(name='fabd.conf')
         conf.set_globally('conf_name', self.conf.name)
 
+        return conf
+
+    def create_conf(self):
+        conf = self.get_conf()
+        for k, v in self.task_kwargs.items():
+            conf[k] = v
         return conf
 
     def do(self):
@@ -100,15 +104,15 @@ class Conf(Task):
 conf = Conf()
 
 
-class EmptyConf(Conf):
-    def base_conf(self):
-        return self._kwargs
+class DefaultConf(Conf):
+    def get_conf(self):
+        from .containers import DefaultConf
+        return DefaultConf(name='default')
 
     def run(self, **kwargs):
-        self._kwargs = kwargs
-        return super(Conf, self).run()
+        return super(Conf, self).run(**kwargs)
 
-empty_conf = EmptyConf()
+default_conf = DefaultConf()
 
 
 class CreateUser(Task):

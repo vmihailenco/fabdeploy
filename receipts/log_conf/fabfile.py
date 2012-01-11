@@ -9,11 +9,6 @@ from fabric.api import *
 from fabdeploy.api import *; setup_fabdeploy()
 
 
-@task
-def prod():
-    fabconf('prod')
-
-
 class MyTask(Task):
     def do(self):
         print self.conf.log_path
