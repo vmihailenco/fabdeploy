@@ -101,7 +101,7 @@ class BaseConf(MutableMapping):
         if name.endswith(('_dir', '_path', '_file', '_link')) and \
            isinstance(value, (list, tuple)):
             value = posixpath.join(*value).rstrip(posixpath.sep)
-        elif name.endswith(('_ldir', '_lpath')) and \
+        elif name.endswith(('_ldir', '_lpath', '_lfile', '_llink')) and \
              isinstance(value, (list, tuple)):
             value = os.path.abspath(os.path.join(*value).rstrip(os.sep))
 
@@ -300,13 +300,13 @@ class DefaultConf(BaseConf):
 
     pip_cache_path = '/var/run/pip-download-cache'
     pip_req_lpath = ''
-    pip_req_name = 'requirements.txt'
+    pip_req_file = 'requirements.txt'
 
     # prefix for supervisor programs/groups
     # useful when there are several projects deployed on one server
     supervisor_prefix = ''
     supervisor_config_path = ['%(etc_path)s', 'supervisor']
-    supervisord_config = '/etc/supervisord.conf'
+    supervisord_config_file = '/etc/supervisord.conf'
 
     @conf
     def user(self):

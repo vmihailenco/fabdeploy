@@ -39,7 +39,7 @@ install = Install()
 class D(Task):
     def do(self):
         with settings(warn_only=True):
-            sudo('supervisord --configuration=%(supervisord_config)s' %
+            sudo('supervisord --configuration=%(supervisord_config_file)s' %
                  self.conf)
 
 d = D()
@@ -53,7 +53,7 @@ class Ctl(Task):
         return self.conf.get('command', '')
 
     def do(self):
-        sudo('supervisorctl --configuration=%(supervisord_config)s '
+        sudo('supervisorctl --configuration=%(supervisord_config_file)s '
              '%(command)s' % self.conf)
 
 ctl = Ctl()
@@ -87,10 +87,10 @@ reload = Reload()
 
 class PushDConfig(Task):
     def do(self):
-        if 'supervisord_config_template' in self.conf:
+        if 'supervisord_config_lfile' in self.conf:
             upload_config_template(
-                self.conf.supervisord_config_template,
-                self.conf.supervisord_config,
+                self.conf.supervisord_config_lfile,
+                self.conf.supervisord_config_file,
                 context=self.conf)
 
 push_d_config = PushDConfig()
@@ -122,7 +122,7 @@ class PushConfigs(Task):
                 context=self.conf)
 
         files.append(
-            self.conf.supervisord_config,
+            self.conf.supervisord_config_file,
             self.conf.configs_glob,
             use_sudo=True)
 

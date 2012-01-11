@@ -9,7 +9,7 @@ __all__ = ['install', 'push_config']
 
 
 class Install(Task):
-    USE_SUDO = False
+    USE_SUDO = True
 
     def cmd(self, command):
         if self.USE_SUDO:
@@ -19,14 +19,14 @@ class Install(Task):
 
     @conf
     def options(self):
-#        options = self.conf.get('options', '')
-        options = ''
+        options = self.conf.get('options', '')
         if self.conf.get('upgrade', False):
             options += ' --upgrade'
         if self.conf.get('cache', True):
-            if '_pip_cache_chmod' not in self.conf:
+            if '_pip_cache' not in self.conf:
+                sudo('mkdir --parents %(pip_cache_path)s' % self.conf)
                 sudo('chmod 0777 %(pip_cache_path)s' % self.conf)
-                self.conf.set_globally('_pip_cache_chmod', True)
+                self.conf.set_globally('_pip_cache', True)
             options += ' --download-cache %(pip_cache_path)s' % self.conf
         return options
 

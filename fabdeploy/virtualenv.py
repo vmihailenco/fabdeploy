@@ -22,8 +22,7 @@ class PipInstall(pip.Install):
 
     @inside_virtualenv
     def do(self):
-        with pip.install.tmp_conf(self.conf):
-            pip.install.do()
+        return super(PipInstall, self).do()
 
 pip_install = PipInstall()
 
@@ -31,7 +30,7 @@ pip_install = PipInstall()
 class PipInstallReq(PipInstall):
     @conf
     def filepath(self):
-        return os.path.join(self.conf.pip_req_lpath, self.conf.pip_req_name)
+        return os.path.join(self.conf.pip_req_lpath, self.conf.pip_req_file)
 
     @conf
     def options(self):
@@ -45,8 +44,7 @@ class PipInstallReq(PipInstall):
 
     @inside_project
     def do(self):
-        with pip_install.tmp_conf(self.conf):
-            pip_install.do()
+        return super(PipInstallReq, self).do()
 
 pip_install_req = PipInstallReq()
 
