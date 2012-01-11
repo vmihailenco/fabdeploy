@@ -1,22 +1,22 @@
 from jinja2 import Template
 
-from fabdeploy.containers import MultiSourceDict, conf
+from fabdeploy.task import Task
+from fabdeploy.containers import BaseConf, conf
 
 
-class DataSource(object):
+class MyTask(Task):
     @conf
     def foo(self):
         return 'obj'
 
 
 def test_set_get():
-    data = {'foo': 'data'}
-    obj = DataSource()
-
-    d = MultiSourceDict(data)
+    d = BaseConf()
+    d.foo = 'data'
     assert d.foo == 'data'
 
-    d = MultiSourceDict(data, obj)
+    d = BaseConf(task=MyTask())
+    d.foo = 'data'
     assert d.foo == 'obj'
 
     d.setdefault('foo', 'bla')
@@ -29,10 +29,8 @@ def test_set_get():
 
 
 def test_jinja2_usage():
-    data = {'foo': 'data'}
-    obj = DataSource()
-
-    d = MultiSourceDict(data, obj)
+    d = BaseConf(task=MyTask())
+    d.foo = 'data'
 
     template = Template('{{ foo }}')
     value = template.render(**d)

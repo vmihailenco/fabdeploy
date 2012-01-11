@@ -2,6 +2,7 @@ from nose.tools import with_setup
 
 from fabric.api import env
 
+from fabdeploy.containers import DefaultConf
 from fabdeploy.api import Task, conf
 
 
@@ -28,11 +29,11 @@ example_task = ExampleTask()
 
 
 def setup():
-    env.conf = {}
+    env.conf = DefaultConf()
 
 
 def teardown():
-    env.conf = {}
+    env.conf = DefaultConf()
 
 
 @with_setup(setup, teardown)
@@ -43,7 +44,7 @@ def test_example_task_defaults():
 
 @with_setup(setup, teardown)
 def test_example_task_with_env():
-    env.conf = {'var2': 'env'}
+    env.conf.var2 = 'env'
     r = example_task.run(var3='kwarg')
     assert r == ['cls', 'env', 'kwarg', 'def']
 
@@ -64,6 +65,7 @@ class Task1(Task):
         return 'task1'
 
     def do(self):
+        print self.task_kwargs
         return self.conf.var
 
 task1 = Task1()
@@ -97,6 +99,7 @@ def test_task_with_different_configs():
     class Task0(Task):
         def do(self):
             with task1.tmp_conf({'var': 'task4'}):
+                print task1.task_kwargs
                 v1 = task1.run()
             return v1, self.conf.var
 
