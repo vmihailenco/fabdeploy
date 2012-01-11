@@ -48,6 +48,11 @@ In Ubuntu ``root`` user is disabled by default. You can create special
 
     fab fabd.default_conf:address=user@host,sudo_user=user fabd.create_user
 
+Then you should tell fabdeploy to use new ``sudo_user``::
+
+    class ProdConf(BaseConf):
+        sudo_user = 'fabdeploy'
+
 List of available tasks::
 
     fab --list
