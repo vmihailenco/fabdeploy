@@ -52,7 +52,7 @@ pip_install_req = PipInstallReq()
 class Create(Task):
     @conf
     def options(self):
-        return '--no-site-packages'
+        return '--no-site-packages --distribute'
 
     def do(self):
         run('virtualenv %(options)s %(env_path)s' % self.conf)
