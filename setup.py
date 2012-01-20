@@ -18,6 +18,7 @@ setup(
     packages=['fabdeploy'],
     package_data={'fabdeploy': [
         'config_templates/supervisor/*.*',
+        'config_templates/init/*.*',
         'config_templates/*.*',
     ]},
     classifiers=[
