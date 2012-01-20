@@ -1,3 +1,10 @@
+Version 0.3.1
+=============
+
+- Use ``--distribute`` with ``virtualenv.create``.
+- Add new command ``fabd.create_configs``.
+- Don't override ``conf_name`` in ``fabd.conf``.
+
 Version 0.3.0
 =============
 

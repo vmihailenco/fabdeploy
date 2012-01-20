@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from distutils.core import setup
 
 
@@ -14,6 +16,10 @@ setup(
     author_email='vladimir.webdev@gmail.com',
     url='https://bitbucket.org/vladimir_webdev/fabdeploy',
     packages=['fabdeploy'],
+    package_data={'fabdeploy': [
+        'config_templates/supervisor/*.*',
+        'config_templates/*.*',
+    ]},
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',

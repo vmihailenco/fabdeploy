@@ -56,7 +56,7 @@ class WSGITask(Task):
 
     @conf
     def wsgi_file(self):
-        return '%(instance_name)s.py' % self.conf
+        return '%(instance_name)s.py'
 
     @conf
     def wsgi_filepath(self):
@@ -85,11 +85,11 @@ class PushConfig(WSGITask):
 
     @conf
     def ports_string(self):
-        return 'Listen 127.0.0.1:%(apache_port)s' % self.conf
+        return 'Listen 127.0.0.1:%(apache_port)s'
 
     @conf
     def config_filepath(self):
-        return '/etc/apache2/sites-available/%(instance_name)s' % self.conf
+        return '/etc/apache2/sites-available/%(instance_name)s'
 
     def do(self):
         files.append(self.conf.ports_filepath, self.conf.ports_string,
