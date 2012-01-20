@@ -15,6 +15,7 @@ __all__ = [
     'syncdb',
     'migrate',
     'collectstatic',
+    'createsuperuser',
     'shell',
 ]
 
@@ -55,7 +56,7 @@ manage = Manage()
 class Syncdb(Manage):
     @conf
     def command(self):
-        return 'syncdb --noinput' % self.conf
+        return 'syncdb --noinput'
 
 syncdb = Syncdb()
 
@@ -67,7 +68,7 @@ class Migrate(Manage):
 
     @conf
     def command(self):
-        return 'migrate %(app)s --noinput' % self.conf
+        return 'migrate %(app)s --noinput'
 
 migrate = Migrate()
 
@@ -78,6 +79,14 @@ class Collectstatic(Manage):
         return 'collectstatic --noinput'
 
 collectstatic = Collectstatic()
+
+
+class Createsuperuser(Manage):
+    @conf
+    def command(self):
+        return 'createsuperuser'
+
+createsuperuser = Createsuperuser()
 
 
 class Shell(Manage):

@@ -3,6 +3,7 @@ import posixpath
 from fabric.api import cd, run, sudo, settings
 from fabric.contrib import files
 
+from . import pip
 from .containers import conf
 from .task import Task as BaseTask
 from .utils import upload_config_template
@@ -10,6 +11,7 @@ from .utils import upload_config_template
 
 __all__ = [
     'install',
+    'push_init_config',
     'd',
     'ctl',
     'shutdown',
@@ -31,9 +33,17 @@ class Task(BaseTask):
 
 class Install(Task):
     def do(self):
-        sudo('pip install --upgrade supervisor')
+        pip.install.run(app='supervisor', upgrade=True)
 
 install = Install()
+
+
+class PushInitConfig(Task):
+    def do(self):
+        upload_config_template(
+            'init/supervisord.conf', '/etc/init', use_sudo=True)
+
+push_init_config = PushInitConfig()
 
 
 class D(Task):

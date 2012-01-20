@@ -1,3 +1,7 @@
+import os
+import shutil
+import logging
+
 from fabric.api import env, run, sudo, puts, abort
 
 from . import users, ssh
@@ -11,8 +15,12 @@ __all__ = [
     'debug',
     'conf',
     'default_conf',
-    'create_user'
+    'create_user',
+    'create_configs',
 ]
+
+
+logger = logging.getLogger('fabdeploy.fabd')
 
 
 class Mkdirs(Task):
@@ -83,7 +91,8 @@ class Conf(Task):
 
         name = self._conf_name(self.conf.name)
         conf = getattr(config, name)(name='fabd.conf')
-        conf.set_globally('conf_name', self.conf.name)
+        if self.conf.name == 'default':
+            conf.set_globally('conf_name', self.conf.name)
 
         return conf
 
@@ -128,3 +137,34 @@ class CreateUser(Task):
         users.grant_sudo.run(user=self.conf.fabd_user)
 
 create_user = CreateUser()
+
+
+class CreateConfigs(Task):
+    """Creates config_templates directory with all available configs."""
+
+    @conf_dec
+    def configs_src(self):
+        return os.path.join(
+            os.path.dirname(__file__), 'config_templates')
+
+    @conf_dec
+    def configs_target(self):
+        return os.path.join(os.getcwd(), 'config_templates')
+
+    def do(self):
+        for (dirpath, dirnames, filenames) in os.walk(self.conf.configs_src):
+            for filename in filenames:
+                src_filepath = os.path.join(dirpath, filename)
+                name = src_filepath.replace(self.conf.configs_src + '/', '')
+                target_filepath = os.path.join(
+                    self.conf.configs_target, name)
+                if os.path.exists(target_filepath):
+                    continue
+                puts('Copying %s...' % filename)
+                try:
+                    os.makedirs(os.path.dirname(target_filepath))
+                except OSError, exc:
+                    logger.debug('CreateConfigs: %s' % exc)
+                shutil.copyfile(src_filepath, target_filepath)
+
+create_configs = CreateConfigs()

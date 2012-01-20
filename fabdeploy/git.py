@@ -10,7 +10,7 @@ __all__ = [
     'init',
     'push',
     'pull',
-    'tag'
+    'tag',
 ]
 
 
@@ -60,7 +60,6 @@ pull = Pull()
 
 
 class Tag(Task):
-    @conf
     def do(self):
         run('git tag %(version)s' % self.conf)
 
