@@ -7,7 +7,8 @@ Repos
 Quickstart
 ==========
 
-There is full working example: https://github.com/vladimir-webdev/fabdeploy-example.
+There is full working example:
+https://github.com/vladimir-webdev/fabdeploy-example.
 
 Create fabconf.py::
 
@@ -219,7 +220,7 @@ There are some conventions how to configure fabdeploy:
     from fabdeploy.api import DefaultConf
 
     class BaseConf(DefaultConf):
-        'supervisor__log_dir = ['%(var_dir)s', 'log', 'supervisor']
+        supervisor__log_dir = ['%(var_dir)s', 'log', 'supervisor']
 
 - Function can be decorated with conf decorator. For example,
   ``current_time`` task looks like this::
@@ -246,7 +247,9 @@ There are some conventions how to configure fabdeploy:
         mysql__db_name = 'mysql_db'          # module=mysql
         mysql__create_db__db_user = 'root'   # module=mysql, task=create_db
 
-Configuration is stored in task instance variable ``self.conf``. Each task has its own copy of configuration. Configuration variables are searched in following places:
+Configuration is stored in task instance variable ``self.conf``. Each
+task has its own copy of configuration. Configuration variables are
+searched in following places:
 
 - task keyword argument ``var`` (``fab task:foo=bar``);
 - task instance method ``var()`` decorated with ``@conf()``;
@@ -258,7 +261,8 @@ Global configuration is stored in ``env.conf``.
 Writing your task
 =================
 
-Your task is class-based fabric class except fabdeploy manages configuration for you::
+Your task is class-based fabric class except fabdeploy manages
+configuration for you::
 
     from fabric.api import puts
     from fabdeploy.api import Task, conf
