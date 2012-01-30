@@ -7,9 +7,21 @@ from .containers import conf
 from .task import Task
 
 
-__all__ = ['install', 'dump', 'list_dumps', 'restore',
-           'execute', 'create_user', 'drop_user',
-           'create_db', 'drop_db', 'grant']
+__all__ = [
+    'install',
+    'dump',
+    'list_dumps',
+    'restore',
+    'execute',
+    'create_user',
+    'drop_user',
+    'create_db',
+    'drop_db',
+    'grant',
+    'set_config',
+    'set_config_for_django',
+    'shell',
+]
 
 
 class Install(Task):
@@ -23,7 +35,7 @@ install = Install()
 class Dump(Task):
     @conf
     def filename(self):
-        return '%(db_name)s%(current_time)s.pgc' % self.conf
+        return '%(db_name)s%(current_time)s.pgc'
 
     @conf
     def filepath(self):
@@ -37,7 +49,7 @@ class Dump(Task):
                '--username=%(db_user)s ' \
                '--format=c ' \
                '--file=%(filepath)s' \
-               ' %(db_name)s' % self.conf
+               ' %(db_name)s'
 
     def do(self):
         return run(self.conf.command)
@@ -64,7 +76,10 @@ list_dumps = ListDumps()
 class Restore(Task):
     @conf
     def options(self):
-        return '--clean'
+        options = '--clean'
+        if self.conf.get('db_renamed'):
+            options += ' --no-owner --no-tablespaces --no-privileges'
+        return options
 
     @conf
     def filepath(self):
@@ -97,7 +112,7 @@ class Restore(Task):
                '--username=%(db_user)s ' \
                '--dbname=%(db_name)s ' \
                '%(options)s ' \
-               '%(filepath)s' % self.conf
+               '%(filepath)s'
 
     def do(self):
         return run(self.conf.command)
@@ -108,8 +123,7 @@ restore = Restore()
 class Execute(Task):
     @conf
     def command(self):
-        return ('sudo -u %(db_root_user)s psql --command="%(escaped_sql)s"' %
-                self.conf)
+        return 'sudo -u %(db_root_user)s psql --command="%(escaped_sql)s"'
 
     @conf
     def sql():
@@ -117,7 +131,7 @@ class Execute(Task):
 
     @conf
     def escaped_sql(self):
-        return self.conf.sql.replace('"', r'\"')
+        return self.conf.sql.replace('"', r'\"').strip()
 
     def do(self):
         return sudo(self.conf.command)
@@ -132,7 +146,7 @@ class CreateUser(Execute):
 
     @conf
     def sql(self):
-        return self.SQL_CREATE_USER % self.conf
+        return self.SQL_CREATE_USER
 
 create_user = CreateUser()
 
@@ -142,7 +156,7 @@ class DropUser(Execute):
 
     @conf
     def sql(self):
-        return self.SQL_DROP_USER % self.conf
+        return self.SQL_DROP_USER
 
 drop_user = DropUser()
 
@@ -154,7 +168,7 @@ class CreateDb(Execute):
 
     @conf
     def sql(self):
-        return self.SQL_CREATE_DB % self.conf
+        return self.SQL_CREATE_DB
 
 create_db = CreateDb()
 
@@ -164,7 +178,7 @@ class DropDb(Execute):
 
     @conf
     def sql(self):
-        return self.SQL_DROP_DB % self.conf
+        return self.SQL_DROP_DB
 
 drop_db = DropDb()
 
@@ -176,6 +190,36 @@ class Grant(Execute):
 
     @conf
     def sql(self):
-        return self.SQL_GRANT % self.conf
+        return self.SQL_GRANT
 
 grant = Grant()
+
+
+class SetConfig(Execute):
+    SQL_SET_CONFIG = """
+    ALTER ROLE %(db_user)s SET %(name)s = '%(value)s';
+    """
+
+    @conf
+    def sql(self):
+        return self.SQL_SET_CONFIG
+
+set_config = SetConfig()
+
+
+class SetConfigForDjango(Execute):
+    def do(self):
+        set_config.run(name='client_encoding', value='utf8')
+        set_config.run(
+            name='default_transaction_isolation', value='read committed')
+        set_config.run(name='timezone', value='UTC')
+
+set_config_for_django = SetConfigForDjango()
+
+
+class Shell(Task):
+    @conf
+    def do(self):
+        run('sudo -u %(db_root_user)s psql' % self.conf)
+
+shell = Shell()
