@@ -42,6 +42,7 @@ class PushInitConfig(Task):
     def do(self):
         upload_config_template(
             'init/supervisord.conf', '/etc/init', use_sudo=True)
+        sudo('sudo chown --recursive root:root /etc/init/supervisord.conf')
 
 push_init_config = PushInitConfig()
 
