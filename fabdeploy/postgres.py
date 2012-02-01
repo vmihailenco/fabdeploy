@@ -21,6 +21,8 @@ __all__ = [
     'set_config',
     'set_config_for_django',
     'shell',
+    'ctl',
+    'reload',
 ]
 
 
@@ -223,3 +225,19 @@ class Shell(Task):
         run('sudo -u %(db_root_user)s psql' % self.conf)
 
 shell = Shell()
+
+
+class Ctl(Task):
+    @conf
+    def do(self):
+        run('sudo pg_ctl %(command)s')
+
+ctl = Ctl()
+
+
+class Reload(Task):
+    @conf
+    def command(self):
+        return 'reload'
+
+reload = Reload()
