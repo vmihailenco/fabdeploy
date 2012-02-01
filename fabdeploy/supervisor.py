@@ -21,7 +21,8 @@ __all__ = [
     'push_configs',
     'start_program',
     'stop_program',
-    'restart_program'
+    'restart_program',
+    'pid_program',
 ]
 
 
@@ -64,7 +65,8 @@ class Ctl(Task):
         return self.conf.get('command', '')
 
     def do(self):
-        sudo('supervisorctl --configuration=%(supervisord_config_file)s '
+        return sudo(
+            'supervisorctl --configuration=%(supervisord_config_file)s '
              '%(command)s' % self.conf)
 
 ctl = Ctl()
@@ -142,13 +144,12 @@ push_configs = PushConfigs()
 
 class ProgramCommand(Task):
     def get_command(self, program):
-        self.conf.program = program
-        return '%(command)s %(supervisor_prefix)s%(program)s' % self.conf
+        self.conf._program = program
+        return '%(command)s %(supervisor_prefix)s%(_program)s' % self.conf
 
     def do(self):
         if 'program' in self.conf and self.conf.program:
-            ctl.run(command=self.get_command(self.conf.program))
-            return
+            return ctl.run(command=self.get_command(self.conf.program))
 
         for program in self.conf.supervisor_programs:
             ctl.run(command=self.get_command(program))
@@ -185,3 +186,11 @@ class StopProgram(ProgramCommand):
         return 'stop'
 
 stop_program = StopProgram()
+
+
+class PidProgram(ProgramCommand):
+    @conf
+    def command(self):
+        return 'pid'
+
+pid_program = PidProgram()
