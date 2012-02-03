@@ -8,6 +8,7 @@ from .task import Task
 
 
 __all__ = [
+    'add_ppa',
     'install',
     'dump',
     'list_dumps',
@@ -24,6 +25,13 @@ __all__ = [
     'ctl',
     'reload',
 ]
+
+
+class AddPpa(Task):
+    def do(self):
+        sudo('add-apt-repository ppa:pitti/postgresql')
+
+add_ppa = AddPpa()
 
 
 class Install(Task):
