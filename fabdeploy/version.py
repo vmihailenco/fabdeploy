@@ -35,14 +35,15 @@ class Create(Task):
                  self.conf)
             return
 
-        if files.exists(self.conf.last_env_link):
+        if not self.conf.get('fresh', False) and \
+           files.exists(self.conf.last_env_link):
             run('cp --recursive %(last_env_link)s %(version_path)s' %
                 self.conf)
 
-        with cd(self.conf.var_path):
-            run("find -type f -exec rm '{}' \;")
-        with cd(self.conf.etc_path):
-            run("find -type f -exec rm '{}' \;")
+            with cd(self.conf.var_path):
+                run("find -type f -exec rm '{}' \;")
+            with cd(self.conf.etc_path):
+                run("find -type f -exec rm '{}' \;")
 
 create = Create()
 
