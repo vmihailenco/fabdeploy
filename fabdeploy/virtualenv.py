@@ -63,6 +63,7 @@ create = Create()
 class MakeRelocatable(Task):
     def do(self):
         run('virtualenv --relocatable %(env_path)s' % self.conf)
+        create.run()
 
 make_relocatable = MakeRelocatable()
 
