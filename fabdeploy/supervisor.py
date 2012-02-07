@@ -1,3 +1,4 @@
+import re
 import posixpath
 
 from fabric.api import cd, run, sudo, settings
@@ -191,6 +192,14 @@ stop_program = StopProgram()
 class PidProgram(ProgramCommand):
     @conf
     def command(self):
-        return 'pid'
+        return 'status'
+
+    def do(self):
+        output = super(PidProgram, self).do()
+        m = re.search(r'pid\s(\d+)', output)
+        if m:
+            return m.group(1)
+        else:
+            return 0
 
 pid_program = PidProgram()
