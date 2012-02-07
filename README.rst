@@ -326,6 +326,8 @@ Typical fabfile may look like this::
         nginx.push_gunicorn_config.run()
         nginx.restart.run()
 
+        supervisor.d()
+
 
     @task
     def deploy():
@@ -352,5 +354,6 @@ Typical fabfile may look like this::
 
         version.activate.run()
 
-        supervisor.d.run()
-        supervisor.restart_programs.run()
+        supervisor.update.run()
+        supervisor.restart_program.run(program='celeryd')
+        gunicorn.reload_with_supervisor.run()
