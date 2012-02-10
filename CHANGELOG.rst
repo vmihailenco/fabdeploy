@@ -1,3 +1,8 @@
+Version 0.3.2
+=============
+
+- Mostly bug fixes, see commits.
+
 Version 0.3.1
 =============
 
