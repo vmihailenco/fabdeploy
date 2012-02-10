@@ -212,14 +212,14 @@ class PurgeOld(PurgeTask):
     def do(self):
         with list_versions.tmp_conf(self.conf):
             versions = list_versions.versions()
-        if len(versions) <= self.conf.keep_number:
-            puts('There are only %s versions available - nothing to purge...' %
-                 len(versions))
-            return
 
         old_versions = [v for v, is_tmp in versions if not is_tmp]
-        old_versions = old_versions[self.conf.keep_number:]
+        if len(old_versions) <= self.conf.keep_number:
+            puts('There are only %s versions available - nothing to purge...' %
+                 len(old_versions))
+            return
 
+        old_versions = old_versions[self.conf.keep_number:]
         if self.purge_confirmed(old_versions):
             self.purge(old_versions)
 
