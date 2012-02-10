@@ -113,7 +113,6 @@ class BaseConf(MutableMapping):
                 return self._task.conf_value(name)
             except MissingVarException:
                 pass
-
         try:
             return super(BaseConf, self).__getattribute__(name)
         except AttributeError:
@@ -134,15 +133,18 @@ class BaseConf(MutableMapping):
         parts = name.split('_')
         if parts[-1] != 'path':
             return {}
-        link_name = '_'.join(parts[:-1])
 
+        link_name = '_'.join(parts[:-1])
         links = {}
         for v in self._versions:
             links['%s_%s_link' % (v, link_name)] = \
                 conf(lambda self, conf=self, v=v: conf._make_version(v, name))
         return links
 
-    def _set_conf_value(self, name, value):
+    def _set_conf_value(self, name, value, keep_user_value=False):
+        if hasattr(self.__class__, name) and keep_user_value:
+            return
+
         instancemethod = type(self.__class__._set_conf_value)
         if callable(value) and not isinstance(value, instancemethod):
             value = instancemethod(value, self, self.__class__)
@@ -152,7 +154,7 @@ class BaseConf(MutableMapping):
 
     def _new_conf(self, name, value):
         for link_name, link in self._links(name, value).items():
-            self.setdefault(link_name, link)
+            self._set_conf_value(link_name, link, keep_user_value=True)
 
     def _conf_keys(self):
         builtins = set([k for k in dir(BaseConf)])
