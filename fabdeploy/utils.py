@@ -2,9 +2,8 @@ import posixpath
 from functools import wraps
 from contextlib import contextmanager
 
-from fabric.api import env, cd, prefix
+from fabric.api import env, cd, prefix, abort
 from fabric import network
-from fabric.operations import _handle_failure
 from fabric.contrib.files import upload_template
 
 
@@ -124,10 +123,9 @@ def upload_config_template(name, to=None, context=None, skip_unexistent=False,
         context = env.conf
 
     if config_template is None:
-
         if skip_unexistent:
             return
-        _handle_failure('Config template "%s" is not found.' % name)
+        abort('Config template "%s" is not found.' % name)
 
     upload_template(config_template, to, context, use_jinja=True,
                     **kwargs)
