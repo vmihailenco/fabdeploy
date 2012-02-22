@@ -21,8 +21,10 @@ __all__ = [
     'grant',
     'set_config',
     'set_config_for_django',
+    'db_size',
+    'table_size',
     'shell',
-    'ctl',
+    'restart',
     'reload',
 ]
 
@@ -218,13 +220,24 @@ set_config = SetConfig()
 
 
 class SetConfigForDjango(Execute):
+    @conf
+    def timezone(self):
+        return 'UTC'
+
     def do(self):
         set_config.run(name='client_encoding', value='utf8')
         set_config.run(
             name='default_transaction_isolation', value='read committed')
-        set_config.run(name='timezone', value='UTC')
+        set_config.run(name='timezone', value=self.conf.timezone)
 
 set_config_for_django = SetConfigForDjango()
+
+
+class DbExecute(Execute):
+    @conf
+    def command(self):
+        return 'sudo -u %(db_root_user)s psql %(db_name)s' \
+               ' --command="%(escaped_sql)s"'
 
 
 class Shell(Task):
@@ -235,17 +248,15 @@ class Shell(Task):
 shell = Shell()
 
 
-class Ctl(Task):
-    @conf
+class Restart(Task):
     def do(self):
-        run('sudo pg_ctl %(command)s')
+        sudo('invoke-rc.d postgresql restart')
 
-ctl = Ctl()
+restart = Restart()
 
 
 class Reload(Task):
-    @conf
-    def command(self):
-        return 'reload'
+    def do(self):
+        sudo('invoke-rc.d postgresql reload')
 
 reload = Reload()
