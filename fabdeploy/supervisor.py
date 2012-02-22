@@ -13,6 +13,8 @@ from .utils import upload_config_template
 __all__ = [
     'install',
     'push_init_config',
+    'start',
+    'stop',
     'd',
     'ctl',
     'shutdown',
@@ -44,9 +46,23 @@ class PushInitConfig(Task):
     def do(self):
         upload_config_template(
             'init/supervisord.conf', '/etc/init', use_sudo=True)
-        sudo('sudo chown --recursive root:root /etc/init/supervisord.conf')
+        sudo('chown --recursive root:root /etc/init/supervisord.conf')
 
 push_init_config = PushInitConfig()
+
+
+class Start(Task):
+    def do(self):
+        sudo('start supervisord')
+
+start = Start()
+
+
+class Stop(Task):
+    def do(self):
+        sudo('stop supervisord')
+
+stop = Stop()
 
 
 class D(Task):
