@@ -6,8 +6,13 @@ from .task import Task
 from .utils import upload_config_template
 
 
-__all__ = ['install', 'restart', 'push_apache_config',
-           'push_gunicorn_config', 'push_uwsgi_config']
+__all__ = [
+    'install',
+    'restart',
+    'reload',
+    'push_apache_config',
+    'push_uwsgi_config',
+]
 
 
 class Install(Task):
@@ -18,8 +23,9 @@ class Install(Task):
             system.aptitude_install.run(packages='nginx')
         else:
             options = {'lenny': '-t lenny-backports'}
-            system.aptitude_install.run(packages='nginx',
-                                        options=options.get(self.conf.os, ''))
+            system.aptitude_install.run(
+                packages='nginx',
+                options=options.get(self.conf.os, ''))
         sudo('rm --force /etc/nginx/sites-enabled/default')
 
 install = Install()
@@ -28,33 +34,20 @@ install = Install()
 class PushConfigTask(Task):
     @conf
     def config(self):
-        return '/etc/nginx/sites-available/%(instance_name)s' % self.conf
+        return '/etc/nginx/sites-available/%(instance_name)s'
 
     @conf
     def enabled_config(self):
-        return '/etc/nginx/sites-enabled/%(instance_name)s' % self.conf
+        return '/etc/nginx/sites-enabled/%(instance_name)s'
 
     def do(self):
-        upload_config_template(self.conf.config_template, self.conf.config,
-            context=self.conf, use_sudo=True)
+        upload_config_template(
+            self.conf.config_template,
+            self.conf.config,
+            context=self.conf,
+            use_sudo=True)
         with settings(warn_only=True):
             sudo('ln --symbolic %(config)s %(enabled_config)s' % self.conf)
-
-
-class PushApacheConfig(PushConfigTask):
-    @conf
-    def config_template(self):
-        return 'nginx_apache.config'
-
-push_apache_config = PushApacheConfig()
-
-
-class PushGunicornConfig(PushConfigTask):
-    @conf
-    def config_template(self):
-        return 'nginx_gunicorn.config'
-
-push_gunicorn_config = PushGunicornConfig()
 
 
 class PushUwsgiConfig(PushConfigTask):
@@ -70,3 +63,10 @@ class Restart(Task):
         sudo('invoke-rc.d nginx restart')
 
 restart = Restart()
+
+
+class Reload(Task):
+    def do(self):
+        sudo('invoke-rc.d nginx reload')
+
+reload = Reload()
