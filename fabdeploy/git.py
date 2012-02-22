@@ -11,6 +11,7 @@ __all__ = [
     'push',
     'pull',
     'tag',
+    'last_commit',
 ]
 
 
@@ -64,3 +65,11 @@ class Tag(Task):
         run('git tag %(version)s' % self.conf)
 
 tag = Tag()
+
+
+class LastCommit(Task):
+    def do(self):
+        with cd(self.conf.src_path):
+            return run('git log -n 1 --pretty=oneline')
+
+last_commit = LastCommit()
