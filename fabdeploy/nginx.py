@@ -10,8 +10,6 @@ __all__ = [
     'install',
     'restart',
     'reload',
-    'push_apache_config',
-    'push_uwsgi_config',
 ]
 
 
