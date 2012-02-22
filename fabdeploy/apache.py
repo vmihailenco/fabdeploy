@@ -7,10 +7,18 @@ from . import system
 from .containers import conf
 from .task import Task
 from .utils import upload_config_template
+from .nginx import PushConfigTask as PushNginxConfigTask
 
 
-__all__ = ['install', 'restart', 'graceful', 'push_config',
-           'wsgi_push', 'wsgi_touch']
+__all__ = [
+    'install',
+    'restart',
+    'graceful',
+    'wsgi_push',
+    'wsgi_touch',
+    'push_config',
+    'push_nginx_config',
+]
 
 
 class Restart(Task):
@@ -92,13 +100,24 @@ class PushConfig(WSGITask):
         return '/etc/apache2/sites-available/%(instance_name)s'
 
     def do(self):
-        files.append(self.conf.ports_filepath, self.conf.ports_string,
-                     use_sudo=True)
+        files.append(
+            self.conf.ports_filepath,
+            self.conf.ports_string,
+            use_sudo=True)
 
-        upload_config_template('apache.config',
+        upload_config_template(
+            'apache.config',
             self.conf.config_filepath,
             context=self.conf,
             use_sudo=True)
         sudo('a2ensite %(instance_name)s' % self.conf)
 
 push_config = PushConfig()
+
+
+class PushNginxConfig(PushNginxConfigTask):
+    @conf
+    def config_template(self):
+        return 'nginx_apache.config'
+
+push_nginx_config = PushNginxConfig()
