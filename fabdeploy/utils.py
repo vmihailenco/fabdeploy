@@ -114,8 +114,8 @@ def inside_django(func):
     return inner
 
 
-def upload_config_template(name, to=None, context=None, skip_unexistent=False,
-                           **kwargs):
+def upload_config_template(
+    name, to=None, context=None, skip_unexistent=False, **kwargs):
     config_template = env.conf.config_template_lpath(name)
     if to is None:
         to = posixpath.join(env.conf.etc_path, name)
@@ -127,8 +127,8 @@ def upload_config_template(name, to=None, context=None, skip_unexistent=False,
             return
         abort('Config template "%s" is not found.' % name)
 
-    upload_template(config_template, to, context, use_jinja=True,
-                    **kwargs)
+    upload_template(
+        config_template, to, context, use_jinja=True, **kwargs)
 
 
 # TODO: move to conf
