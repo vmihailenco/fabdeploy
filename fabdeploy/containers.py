@@ -256,6 +256,7 @@ class DefaultConf(BaseConf):
     django_path = ['%(project_path)s', '%(django_dir)s']
     env_path = ['%(version_path)s', 'env']
     shared_path = ['%(home_path)s', 'shared']
+    media_path = ['%(shared_path)s', 'media']
     etc_path = ['%(shared_path)s', 'etc']
     var_path = ['%(shared_path)s', 'var']
     log_path = ['%(var_path)s', 'log']
