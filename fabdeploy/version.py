@@ -18,6 +18,7 @@ __all__ = [
     'work_on',
     'purge_old',
     'purge_tmp',
+    'purge',
 ]
 
 
@@ -54,13 +55,18 @@ class Activate(Task):
                 '%(last_version_link)s %(previous_version_link)s' % self.conf)
 
         # save last version
-        run('rm --force %(last_version_link)s' % self.conf)
-        run('ln --symbolic %(version_path)s %(last_version_link)s' % self.conf)
-
-        # activate current version
-        run('rm --force %(active_version_link)s' % self.conf)
         run('ln '
             '--symbolic '
+            '--force '
+            '--no-target-directory '
+            '%(version_path)s '
+            '%(last_version_link)s' % self.conf)
+
+        # activate current version
+        run('ln '
+            '--symbolic '
+            '--force '
+            '--no-target-directory '
             '%(version_path)s %(active_version_link)s' % self.conf)
 
         run('touch %(version_data_file)s' % self.conf)
@@ -219,3 +225,11 @@ class PurgeOld(PurgeTask):
             self.purge(old_versions)
 
 purge_old = PurgeOld()
+
+
+class Purge(Task):
+    def do(self):
+        purge_tmp.run()
+        purge_old.run()
+
+purge = Purge()
