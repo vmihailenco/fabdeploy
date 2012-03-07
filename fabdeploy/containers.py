@@ -141,11 +141,11 @@ class BaseConf(MutableMapping):
                 conf(lambda self, conf=self, v=v: conf._make_version(v, name))
         return links
 
-    def _set_conf_value(self, name, value, keep_user_value=False):
+    def set_conf_value(self, name, value, keep_user_value=False):
         if hasattr(self.__class__, name) and keep_user_value:
             return
 
-        instancemethod = type(self.__class__._set_conf_value)
+        instancemethod = type(self.__class__.set_conf_value)
         if callable(value) and not isinstance(value, instancemethod):
             value = instancemethod(value, self, self.__class__)
 
@@ -154,7 +154,7 @@ class BaseConf(MutableMapping):
 
     def _new_conf(self, name, value):
         for link_name, link in self._links(name, value).items():
-            self._set_conf_value(link_name, link, keep_user_value=True)
+            self.set_conf_value(link_name, link, keep_user_value=True)
 
     def _conf_keys(self):
         builtins = set([k for k in dir(BaseConf)])
@@ -169,7 +169,7 @@ class BaseConf(MutableMapping):
             value = self._conf_raw_value(key)
         except MissingVarException:
             value = default
-            self._set_conf_value(key, value)
+            self.set_conf_value(key, value)
         return value
 
     def get(self, key, default):
@@ -179,7 +179,7 @@ class BaseConf(MutableMapping):
             return default
 
     def __setitem__(self, key, value):
-        self._set_conf_value(key, value)
+        self.set_conf_value(key, value)
 
     def __getitem__(self, key):
         try:
@@ -215,12 +215,12 @@ class BaseConf(MutableMapping):
         if name in super(BaseConf, self).__getattribute__('_attrs'):
             super(BaseConf, self).__setattr__(name, value)
             return
-        self._set_conf_value(name, value)
+        self.set_conf_value(name, value)
 
     def _copy_conf(self, source):
         for k in source._conf_keys():
             try:
-                self._set_conf_value(k, source._conf_raw_value(k))
+                self.set_conf_value(k, source._conf_raw_value(k))
             except MissingVarException:
                 logger.debug('_copy_conf: can not copy name=%s' % k)
 
