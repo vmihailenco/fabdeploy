@@ -7,7 +7,7 @@ from fabric.contrib import files
 from . import pip
 from .containers import conf
 from .task import Task as BaseTask
-from .utils import upload_config_template
+from .utils import upload_config_template, upload_init_template
 
 
 __all__ = [
@@ -44,9 +44,7 @@ install = Install()
 
 class PushInitConfig(Task):
     def do(self):
-        upload_config_template(
-            'init/supervisord.conf', '/etc/init', use_sudo=True)
-        sudo('chown --recursive root:root /etc/init/supervisord.conf')
+        upload_init_template('supervisord.conf', use_sudo=True)
 
 push_init_config = PushInitConfig()
 
