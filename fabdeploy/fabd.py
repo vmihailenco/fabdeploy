@@ -91,9 +91,7 @@ class Conf(Task):
 
         name = self._conf_name(self.conf.name)
         conf = getattr(config, name)(name='fabd.conf')
-
-        if self.conf.conf_name == 'default':
-            conf.set_globally('conf_name', self.conf.name)
+        conf.set_conf_value('conf_name', self.conf.name, keep_user_value=True)
 
         return conf
 
