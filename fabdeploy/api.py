@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from . import fabd, system, git, version, virtualenv, nginx, django, pip, \
     postgres, mysql, supervisor, users, ssh, tar, gunicorn, uwsgi, rabbitmq, \
     apache, redis
