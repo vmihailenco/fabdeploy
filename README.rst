@@ -1,14 +1,14 @@
 Repos
 =====
 
-- https://bitbucket.org/vladimir_webdev/fabdeploy
-- https://github.com/vladimir-webdev/fabdeploy
+- https://bitbucket.org/vmihailenco/fabdeploy
+- https://github.com/vmihailenco/fabdeploy
 
 Quickstart
 ==========
 
 There is full working example:
-https://github.com/vladimir-webdev/fabdeploy-example.
+https://github.com/vmihailenco/fabdeploy-example.
 
 Create fabconf.py::
 
