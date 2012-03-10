@@ -21,8 +21,6 @@ __all__ = [
     'grant',
     'set_config',
     'set_config_for_django',
-    'db_size',
-    'table_size',
     'shell',
     'restart',
     'reload',
@@ -39,7 +37,9 @@ add_ppa = AddPpa()
 class Install(Task):
     def do(self):
         system.aptitude_install.run(packages='postgresql libpq-dev')
-        sudo('sudo -u postgres psql --command="\password postgres" postgres')
+        sudo('sudo -u %(db_root_user)s '
+             'psql '
+             '--command="\password %(db_root_user)s" %(db_root_password)s')
 
 install = Install()
 

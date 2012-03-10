@@ -298,8 +298,10 @@ class DefaultConf(BaseConf):
     db_password = '%(user)s'
     db_host = 'localhost'
     mysql__db_root_user = 'root'
+    mysql__db_root_password = 'mysql'
     mysql__db_port = 3306
     postgres__db_root_user = 'postgres'
+    postgres__db_root_password = 'postgres'
     postgres__db_port = 5432
 
     pip_cache_path = '/var/run/pip-download-cache'
