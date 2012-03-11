@@ -1,10 +1,11 @@
 import os
+import ast
 import shutil
 import logging
 
-from fabric.api import env, run, sudo, puts, abort
+from fabric.api import env, run, sudo, puts, abort, settings, hide
 
-from . import users, ssh
+from . import users, tar, ssh
 from .containers import conf as conf_dec
 from .task import Task
 
@@ -17,6 +18,7 @@ __all__ = [
     'default_conf',
     'create_user',
     'create_configs',
+    'push_bin',
 ]
 
 
@@ -167,3 +169,33 @@ class CreateConfigs(Task):
                 shutil.copyfile(src_filepath, target_filepath)
 
 create_configs = CreateConfigs()
+
+
+class PushBin(Task):
+    @conf_dec
+    def bin_src(self):
+        return os.path.join(os.path.dirname(__file__), 'bin')
+
+    @conf_dec
+    def bin_target(self):
+        return self.conf.fabdeploy_bin_path
+
+    def do(self):
+        tar.push.run(
+            src_path=self.conf.bin_src,
+            target_path=self.conf.bin_target)
+
+push_bin = PushBin()
+
+
+class Bin(Task):
+    @conf_dec
+    def cmd(self):
+        return 'python %(fabdeploy_bin_path)s/%(program)s.py %(args)s'
+
+    def do(self):
+        with settings(hide('everything')):
+            output = run(self.conf.cmd)
+        return ast.literal_eval(output)
+
+bin = Bin()
