@@ -36,7 +36,7 @@ def conf(func):
 class BaseConf(MutableMapping):
     _attrs = (
         '_name',
-        '_task',
+        '_tasks',
         '_global_conf',
         '_versions',
         '_conf_value',
@@ -47,11 +47,11 @@ class BaseConf(MutableMapping):
     def __init__(
         self,
         name=None,
-        task=None,
+        tasks=None,
         global_conf=None,
         versions=['active', 'last', 'previous']):
         self._name = name or 'unknown'
-        self._task = task
+        self._tasks = tasks or []
         self._global_conf = global_conf or self
         self._versions = versions
 
@@ -64,8 +64,8 @@ class BaseConf(MutableMapping):
     def set_name(self, name):
         self._name = name
 
-    def set_task(self, task):
-        self._task = task
+    def add_task(self, task):
+        self._tasks.append(task)
 
     def set_global_conf(self, conf):
         self._global_conf = conf
@@ -108,11 +108,11 @@ class BaseConf(MutableMapping):
         return value
 
     def _conf_raw_value(self, name):
-        if self._task:
+        for task in self._tasks:
             try:
-                return self._task.conf_value(name)
+                return task.conf_value(name)
             except MissingVarException:
-                pass
+                continue
         try:
             return super(BaseConf, self).__getattribute__(name)
         except AttributeError:
@@ -160,8 +160,8 @@ class BaseConf(MutableMapping):
         builtins = set([k for k in dir(BaseConf)])
         keys = [k for k in dir(self)
                 if not k.startswith('_') and k not in builtins]
-        if self._task:
-            keys.extend(self._task.conf_keys())
+        for task in self._tasks:
+            keys.extend(task.conf_keys())
         return keys
 
     def setdefault(self, key, default=None):
@@ -227,7 +227,7 @@ class BaseConf(MutableMapping):
     def copy(self):
         d = self.__class__(
             global_conf=self._global_conf,
-            task=self._task,
+            tasks=self._tasks,
             name=self._name)
         d._copy_conf(self)
         return d
@@ -249,6 +249,8 @@ class DefaultConf(BaseConf):
     # directory name that contains manage.py file (django project root)
     django_dir = ''
     home_path = conf(lambda self: home_path(self.user))
+    fabdeploy_path = ['%(home_path)s', '.fabdeploy.d']
+    fabdeploy_bin_path = ['%(home_path)s', '.fabdeploy.d', 'bin']
     version_path = ['%(home_path)s', '%(version)s']
     version_data_file = ['%(version_path)s', '.fabdeploy']
     src_path = ['%(version_path)s', 'src']

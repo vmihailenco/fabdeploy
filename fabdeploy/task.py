@@ -89,7 +89,7 @@ class Task(BaseTask):
         assert isinstance(env.conf, BaseConf)
         conf = env.conf.copy()
         conf.set_global_conf(env.conf)
-        conf.set_task(self)
+        conf.add_task(self)
         return conf
 
     @contextmanager
@@ -108,9 +108,11 @@ class Task(BaseTask):
                 assert isinstance(conf, BaseConf)
                 self.conf = conf.copy()
                 self.task_kwargs = task_kwargs
+                self.conf.add_task(self)
             elif self.conf is None:
                 self.conf = self._default_conf()
                 self.task_kwargs = task_kwargs
+
             self.conf.set_name('%s.%s' % (self._get_module(), self.name))
             unprefix_conf(self.conf, self._namespaces(self.task_kwargs))
 
