@@ -1,5 +1,6 @@
 import re
 import ast
+import textwrap
 
 from fabric.api import env, run, sudo, settings, hide
 from fabric.utils import puts, abort
@@ -9,30 +10,52 @@ from .containers import conf
 from .task import Task
 
 
-__all__ = ['cpu_count', 'os_codename', 'aptitude_install', 'setup_backports',
-           'install_common_software']
+__all__ = [
+    'exe_python',
+    'cpu_count',
+    'os_codename',
+    'aptitude_install',
+    'setup_backports',
+    'install_common_software',
+]
 
 
-class CpuCount(Task):
-    PROGRAM = "import multiprocessing; print(multiprocessing.cpu_count())"
+class ExePython(Task):
+    @conf
+    def escaped_code(self):
+        return self.conf.code.replace('"', r'\\"')
 
-    def cpu_count(self):
+    def exe(self):
         with settings(hide('everything')):
-            output = run('python -c "%s"' % self.PROGRAM)
+            output = run('python -c "%(escaped_code)s"' % self.conf)
         return ast.literal_eval(output)
 
     def do(self):
-        cpu_count = self.get_cpu_count()
+        r = self.execute()
+        puts(r)
+
+exe_python = ExePython()
+
+
+class CpuCount(ExePython):
+    @conf
+    def code(self):
+        return 'import multiprocessing; print(multiprocessing.cpu_count())'
+
+    def do(self):
+        cpu_count = self.exe()
         puts('Number of CPUs: %s' % cpu_count)
 
 cpu_count = CpuCount()
 
 
-class OSCodename(Task):
+class OSCodename(ExePython):
+    @conf
+    def code(self):
+        return 'import platform; print(platform.dist())'
+
     def codename(self):
-        with settings(hide('everything')):
-            output = run('python -c "import platform; print platform.dist()"')
-        distname, version, id = ast.literal_eval(output)
+        distname, version, id = self.exe()
 
         patterns = [
             ('squeeze', ('debian', '^6', '')),
