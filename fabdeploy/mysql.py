@@ -7,8 +7,16 @@ from .containers import conf
 from .task import Task
 
 
-__all__ = ['install', 'dump', 'execute', 'create_user', 'drop_user',
-           'create_db', 'drop_db', 'grant']
+__all__ = [
+    'install',
+    'dump',
+    'execute',
+    'create_user',
+    'drop_user',
+    'create_db',
+    'drop_db',
+    'grant',
+]
 
 
 class Install(Task):
