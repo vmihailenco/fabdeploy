@@ -1,11 +1,10 @@
 import re
 import ast
-import textwrap
 
 from fabric.api import env, run, sudo, settings, hide
 from fabric.utils import puts, abort
+from fabric.contrib.files import append
 
-from . import pip
 from .containers import conf
 from .task import Task
 
@@ -16,7 +15,6 @@ __all__ = [
     'os_codename',
     'aptitude_install',
     'setup_backports',
-    'install_common_software',
 ]
 
 
@@ -130,49 +128,10 @@ class SetupBackports(Task):
             puts('Backports are not available for %(os)s' % self.conf)
             return
 
-        sudo("echo 'deb %(backports)s' > "
-             "/etc/apt/sources.list.d/backports.sources.list" % self.conf)
+        append(
+            '/etc/apt/sources.list.d/backports.sources.list',
+            'deb %(backports)s' % self.conf,
+            use_sudo=True)
         aptitude_update.run(force=True)
 
 setup_backports = SetupBackports()
-
-
-COMMON_PACKAGES = [
-    'python', 'build-essential', 'python-dev', 'python-setuptools',
-    'python-profiler', 'libjpeg-dev', 'zlib1g-dev',
-    'libssl-dev', 'libcurl3-dev',
-    'libxml2-dev', 'libxslt1-dev',  # for lxml
-
-    'screen', 'locales-all', 'curl',
-    'subversion',
-]
-
-EXTRA_PACKAGES = {
-    'lenny': ['libmysqlclient15-dev'],
-    'squeeze': ['libmysqlclient-dev'],
-    'natty': ['libmysqlclient-dev'],
-    'maverick': ['libmysqlclient-dev'],
-    'lucid': ['libmysqlclient-dev'],
-}
-
-
-class InstallCommonSoftware(Task):
-    def do(self):
-        if self.conf.os not in EXTRA_PACKAGES:
-            abort('OS %(os)s is not supported.' % self.conf)
-            return
-
-        packages = ' '.join(COMMON_PACKAGES + EXTRA_PACKAGES[self.conf.os])
-        aptitude_install.run(packages=packages)
-
-        vcs_options = {
-            'lenny': '-t lenny-backports',
-        }
-        aptitude_install.run(packages='mercurial git git-core',
-                             options=vcs_options.get(self.conf.os, ''))
-        aptitude_install.run(packages='bzr', options='--without-recommends')
-
-        sudo('easy_install --upgrade pip')
-        pip.install.run(app='virtualenv', upgrade=True)
-
-install_common_software = InstallCommonSoftware()
