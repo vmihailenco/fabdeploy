@@ -338,13 +338,15 @@ class DefaultConf(BaseConf):
     @conf
     def os(self):
         from fabdeploy import system
-        self.set_globally('os', system.os_codename.codename())
+        with system.os_codename.tmp_conf():
+            self.set_globally('os', system.os_codename.codename())
         return self.os
 
     @conf
     def cpu_count(self):
         from fabdeploy import system
-        self.set_globally('cpu_count', system.cpu_count.cpu_count())
+        with system.cpu_count.tmp_conf():
+            self.set_globally('cpu_count', system.cpu_count.cpu_count())
         return self.cpu_count
 
     def config_template_lpath(self, name):

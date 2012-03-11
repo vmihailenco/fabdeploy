@@ -40,8 +40,11 @@ class CpuCount(ExePython):
     def code(self):
         return 'import multiprocessing; print(multiprocessing.cpu_count())'
 
+    def cpu_count(self):
+        return self.exe()
+
     def do(self):
-        cpu_count = self.exe()
+        cpu_count = self.cpu_count()
         puts('Number of CPUs: %s' % cpu_count)
 
 cpu_count = CpuCount()
