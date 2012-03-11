@@ -55,7 +55,7 @@ class OSCodename(ExePython):
     def code(self):
         return 'import platform; print(platform.dist())'
 
-    def codename(self):
+    def os_codename(self):
         distname, version, id = self.exe()
 
         patterns = [
@@ -72,11 +72,11 @@ class OSCodename(ExePython):
                 return name
 
     def do(self):
-        codename = self.codename()
-        if codename is None:
+        os_codename = self.os_codename()
+        if os_codename is None:
             abort('Your OS is unsupported')
             return
-        puts('OS codename: %s' % codename)
+        puts('OS codename: %s' % os_codename)
 
 os_codename = OSCodename()
 

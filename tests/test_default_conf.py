@@ -4,13 +4,14 @@ from fabdeploy.containers import DefaultConf
 def test_update_conf():
     conf = DefaultConf()
     conf.address = 'fabdeploy@localhost'
-    conf.os = None
 
     assert conf.user == 'fabdeploy'
     assert conf.host == 'localhost'
     assert conf.instance_name == 'fabdeploy'
 
     assert conf.home_path == '/home/fabdeploy'
+    assert conf.fabdeploy_path == '/home/fabdeploy/.fabdeploy.d'
+    assert conf.fabdeploy_bin_path == conf.fabdeploy_path + '/bin'
     assert conf.version_path == '/home/fabdeploy/%s' % conf.version
     assert conf.src_path == conf.version_path + '/src'
     assert conf.project_path == conf.version_path + '/src'

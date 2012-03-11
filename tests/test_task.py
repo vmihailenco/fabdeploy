@@ -37,87 +37,38 @@ def teardown():
 
 
 @with_setup(setup, teardown)
-def test_example_task_defaults():
-    r = example_task.run()
-    assert r == ['cls', 'def', 'def', 'def']
+def test_task_has_access_to_env_conf():
+    class MyTask(Task):
+        pass
+    my_task = MyTask()
+
+    env.conf.foo = 'env'
+    with my_task.tmp_conf():
+        assert my_task.conf.foo == 'env'
 
 
 @with_setup(setup, teardown)
-def test_example_task_with_env():
-    env.conf.var2 = 'env'
-    r = example_task.run(var3='kwarg')
-    assert r == ['cls', 'env', 'kwarg', 'def']
+def test_task_has_access_to_kwargs():
+    class MyTask(Task):
+        pass
+    my_task = MyTask()
 
-
-@with_setup(setup, teardown)
-def test_example_task_with_kwargs():
-    r = example_task.run(
-        var1='kwarg',
-        var2='kwarg',
-        var3='kwarg',
-        var4='kwarg')
-    assert r == ['kwarg', 'kwarg', 'kwarg', 'kwarg']
-
-
-class Task1(Task):
-    @conf
-    def var(self):
-        return 'task1'
-
-    def do(self):
-        print self.task_kwargs
-        return self.conf.var
-
-task1 = Task1()
+    with my_task.tmp_conf(task_kwargs={'foo': 'kwarg'}):
+        assert my_task.conf.foo == 'kwarg'
 
 
 @with_setup(setup, teardown)
 def test_task_called_with_conf_of_another_task():
+    class Task1(Task):
+        @conf
+        def var(self):
+            return 'task1'
+    task1 = Task1()
+
     class Task0(Task):
         def do(self):
             with task1.tmp_conf(self.conf):
-                return task1.run()
+                assert task1.conf.bar == 'task0'
 
     task0 = Task0()
-
-    assert task0.run(var='foo') == 'foo'
-
-
-@with_setup(setup, teardown)
-def test_task_called_from_another_task():
-    class Task0(Task):
-        def do(self):
-            return task1.run(var='bar')
-
-    task0 = Task0()
-
-    assert task0.run(var='foo') == 'bar'
-
-
-@with_setup(setup, teardown)
-def test_task_with_different_configs():
-    class Task0(Task):
-        def do(self):
-            with task1.tmp_conf({'var': 'task4'}):
-                print task1.task_kwargs
-                v1 = task1.run()
-            return v1, self.conf.var
-
-    task0 = Task0()
-
-    r = task0.run(var='foo')
-    assert r == ('task4', 'foo')
-
-
-@with_setup(setup, teardown)
-def test_setting_conf_in_task():
-    class Task0(Task):
-        def do(self):
-            with task1.tmp_conf(self.conf):
-                self.conf.foo = 'bar'
-            return self.conf.foo
-
-    task0 = Task0()
-
-    r = task0.run()
-    assert r == 'bar'
+    task0.run(bar='task0')

@@ -339,7 +339,7 @@ class DefaultConf(BaseConf):
     def os(self):
         from fabdeploy import system
         with system.os_codename.tmp_conf():
-            self.set_globally('os', system.os_codename.codename())
+            self.set_globally('os', system.os_codename.os_codename())
         return self.os
 
     @conf

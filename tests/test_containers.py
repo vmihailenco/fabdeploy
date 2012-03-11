@@ -4,34 +4,59 @@ from fabdeploy.task import Task
 from fabdeploy.containers import BaseConf, conf
 
 
-class MyTask(Task):
-    @conf
-    def foo(self):
-        return 'obj'
-
-
 def test_set_get():
-    d = BaseConf()
-    d.foo = 'data'
-    assert d.foo == 'data'
+    c = BaseConf()
+    c.foo = 'data'
+    assert c.foo == 'data'
 
-    d = BaseConf(task=MyTask())
-    d.foo = 'data'
-    assert d.foo == 'obj'
 
-    d.setdefault('foo', 'bla')
-    assert d.foo == 'obj'
+def test_get_from_task():
+    class MyTask(Task):
+        @conf
+        def foo(self):
+            return 'task'
 
-    d.setdefault('bla', 'bla')
-    assert d.bla == 'bla'
+    c = BaseConf(tasks=[MyTask()])
+    c.foo = 'user'
+    assert c.foo == 'task'
 
-    assert d.get('not_exist', 'default') == 'default'
+    c.setdefault('foo', 'bla')
+    assert c.foo == 'task'
+
+    c.setdefault('bar', 'default')
+    assert c.bar == 'default'
+
+    assert c.get('not_exist', 'default') == 'default'
+
+
+def test_get_from_multiple_tasks():
+    class Task1(Task):
+        @conf
+        def foo(self):
+            return 'task1'
+
+    class Task2(Task):
+        @conf
+        def foo(self):
+            return 'task1'
+
+    c = BaseConf(tasks=[Task1(), Task2()])
+    assert c.foo == 'task1'
+
+
+def test_set_conf_value():
+    class MyConf(BaseConf):
+        user_value = 'user'
+
+    c = MyConf()
+    c.set_conf_value('user_value', 'my', keep_user_value=True)
+    assert c.user_value == 'user'
 
 
 def test_jinja2_usage():
-    d = BaseConf(task=MyTask())
-    d.foo = 'data'
+    class MyConf(BaseConf):
+        foo = 'bar'
 
     template = Template('{{ foo }}')
-    value = template.render(**d)
-    assert value == u'obj'
+    value = template.render(**MyConf())
+    assert value == u'bar'
