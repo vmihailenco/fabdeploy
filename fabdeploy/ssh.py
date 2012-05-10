@@ -1,7 +1,6 @@
 import re
 import os
 import posixpath
-from collections import defaultdict
 
 from fabric.api import cd, sudo, puts
 from fabric.contrib import files
@@ -13,8 +12,13 @@ from .files import read_file, exists
 from .utils import home_path, split_lines
 
 
-__all__ = ['push_key', 'list_authorized_files', 'list_keys', 'enable_key',
-           'disable_key']
+__all__ = [
+    'push_key',
+    'list_authorized_files',
+    'list_keys',
+    'enable_key',
+    'disable_key',
+]
 
 
 class PushKey(Task):
@@ -69,25 +73,16 @@ list_authorized_files = ListAuthorizedFiles()
 
 
 class ListKeys(SshManagementTask):
-    def get_keys(self, exclude_users=None):
-        authorized_files = list_authorized_files.get_authorized_files(
-            exclude_users=exclude_users)
-
-        keys = defaultdict(list)
-        for user, authorized_file in authorized_files:
-            content = read_file(authorized_file, use_sudo=True, shell=False)
-            for key in split_lines(content):
-                if key.startswith('#'):
-                    continue
-                keys[user].append(key)
-
-        return keys
+    def get_keys(self, authorized_file):
+        body = read_file(authorized_file, use_sudo=True, shell=False)
+        return filter(lambda row: not row.startswith('#'), split_lines(body))
 
     def do(self):
-        for user, keys in self.get_keys().items():
+        authorized_files = list_authorized_files.get_authorized_files()
+        for user, auth_file in authorized_files:
             puts(user)
             puts('-' * 40)
-            for key in keys:
+            for key in self.get_keys(auth_file):
                 puts(key)
             puts('-' * 40)
 
