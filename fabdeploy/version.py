@@ -1,9 +1,10 @@
+import datetime
 import posixpath
 
 from fabric.api import run, puts, prompt
 from fabric.contrib import files
 
-from . import fabd
+from .files import list_files
 from .containers import conf
 from .task import Task
 
@@ -75,9 +76,20 @@ activate = Activate()
 
 class ListVersions(Task):
     def versions(self):
-        return fabd.bin.run(
-            program='versions',
-            args='%(home_path)s %(time_format)s' % self.conf)
+        versions = []
+        for file in list_files(self.conf.home_path):
+            name = posixpath.basename(file)
+            try:
+                datetime.datetime.strptime(name, self.conf.time_format)
+            except ValueError:
+                continue
+
+            f = posixpath.join(self.conf.home_path, name, '.fabdeploy')
+            is_tmp = not files.exists(f)
+            versions.append((name, is_tmp))
+
+        versions.sort(reverse=True)
+        return versions
 
     def puts(self, versions):
         for i, (version, is_tmp) in enumerate(versions):
