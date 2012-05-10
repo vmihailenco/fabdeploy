@@ -14,7 +14,7 @@ setup(
     long_description=readme,
     author='Vladimir Mihailenco',
     author_email='vladimir.webdev@gmail.com',
-    url='https://bitbucket.org/vladimir_webdev/fabdeploy',
+    url='https://github.com/vmihailenco/fabdeploy/',
     packages=['fabdeploy'],
     package_data={'fabdeploy': [
         'config_templates/supervisor/*.*',
@@ -26,7 +26,7 @@ setup(
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
-        'License :: OSI Approved',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
