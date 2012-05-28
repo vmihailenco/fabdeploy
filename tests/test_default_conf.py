@@ -10,14 +10,12 @@ def test_update_conf():
     assert conf.instance_name == 'fabdeploy'
 
     assert conf.home_path == '/home/fabdeploy'
-    assert conf.fabdeploy_path == '/home/fabdeploy/.fabdeploy.d'
-    assert conf.fabdeploy_bin_path == conf.fabdeploy_path + '/bin'
-    assert conf.version_path == '/home/fabdeploy/%s' % conf.version
-    assert conf.src_path == conf.version_path + '/src'
-    assert conf.project_path == conf.version_path + '/src'
-    assert conf.django_path == conf.version_path + '/src'
+    assert conf.releases_path == '/home/fabdeploy/releases'
+    assert conf.release_path == '%s/%s' % (conf.releases_path, conf.release)
+    assert conf.project_path == conf.release_path
+    assert conf.django_path == conf.release_path
     assert conf.shared_path == conf.home_path + '/shared'
-    assert conf.env_path == conf.version_path + '/env'
+    assert conf.env_path == conf.release_path + '/env'
     assert conf.etc_path == conf.shared_path + '/etc'
     assert conf.var_path == conf.shared_path + '/var'
     assert conf.log_path == conf.var_path + '/log'

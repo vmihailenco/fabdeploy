@@ -14,14 +14,20 @@ __all__ = [
 ]
 
 
-class PushConfig(Task):
+class GunicornMixin(object):
+    @conf
+    def gunicorn_bind(self):
+        return 'unix:/tmp/gunicorn-%(server_name)s.socket'
+
+
+class PushConfig(GunicornMixin, Task):
     def do(self):
         upload_config_template('gunicorn.conf.py', context=self.conf)
 
 push_config = PushConfig()
 
 
-class PushNginxConfig(PushNginxConfigTask):
+class PushNginxConfig(GunicornMixin, PushNginxConfigTask):
     @conf
     def config_template(self):
         return 'nginx_gunicorn.config'
@@ -29,7 +35,7 @@ class PushNginxConfig(PushNginxConfigTask):
 push_nginx_config = PushNginxConfig()
 
 
-class ReloadWithSupervisor(Task):
+class ReloadWithSupervisor(GunicornMixin, Task):
     def do(self):
         pid = int(supervisor.pid_program.run(program='gunicorn'))
         if not pid:

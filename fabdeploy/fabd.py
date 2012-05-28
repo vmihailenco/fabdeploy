@@ -12,7 +12,6 @@ from .task import Task
 
 __all__ = [
     'mkdirs',
-    'remove_src',
     'debug',
     'conf',
     'default_conf',
@@ -45,20 +44,6 @@ class Mkdirs(Task):
         sudo('mkdir --parents %s' % ' '.join(sudo_dirs))
 
 mkdirs = Mkdirs()
-
-
-class RemoveSrc(Task):
-    """
-    Remove ``src_path`` dir.
-
-    This is usefull when you want to perform clean deploy.
-    See also ``virtualenv.remove``.
-    """
-
-    def do(self):
-        sudo('rm --recursive --force %(src_path)s' % self.conf)
-
-remove_src = RemoveSrc()
 
 
 class Debug(Task):

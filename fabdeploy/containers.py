@@ -38,7 +38,7 @@ class BaseConf(MutableMapping):
         '_name',
         '_tasks',
         '_global_conf',
-        '_versions',
+        '_releases',
         '_conf_value',
         '_conf_raw_value',
         '_process_conf',
@@ -49,15 +49,15 @@ class BaseConf(MutableMapping):
         name=None,
         tasks=None,
         global_conf=None,
-        versions=['active', 'last', 'previous']):
+        releases=['current', 'last', 'previous']):
         self._name = name or 'unknown'
         self._tasks = tasks or []
         self._global_conf = global_conf or self
-        self._versions = versions
+        self._releases = releases
 
-        for v in ['previous', 'last', 'active']:
-            self['%s_version' % v] = \
-                lambda self, path_name: self._make_version(v, path_name)
+        for r in self._releases:
+            self['%s_release' % r] = \
+                lambda self, path_name: self._make_release(r, path_name)
 
         self._copy_conf(self)
 
@@ -74,11 +74,11 @@ class BaseConf(MutableMapping):
         self[name] = value
         self._global_conf[name] = value
 
-    def _make_version(self, name, path_name):
+    def _make_release(self, name, path_name):
         path = self[path_name]
-        version_path = self.version_path
-        new_version_path = posixpath.join(self.home_path, name)
-        return path.replace(version_path, new_version_path)
+        release_path = self.release_path
+        new_release_path = posixpath.join(self.home_path, name)
+        return path.replace(release_path, new_release_path)
 
     def _substitute(self, value):
         if isinstance(value, list):
@@ -136,9 +136,9 @@ class BaseConf(MutableMapping):
 
         link_name = '_'.join(parts[:-1])
         links = {}
-        for v in self._versions:
-            links['%s_%s_link' % (v, link_name)] = \
-                conf(lambda self, conf=self, v=v: conf._make_version(v, name))
+        for r in self._releases:
+            links['%s_%s_link' % (r, link_name)] = \
+                conf(lambda self, conf=self, r=r: conf._make_release(r, name))
         return links
 
     def set_conf_value(self, name, value, keep_user_value=False):
@@ -237,26 +237,23 @@ class BaseConf(MutableMapping):
 
 
 class DefaultConf(BaseConf):
-    conf_name = 'default'
     address = '%s@localhost' % os.environ['USER']
     instance_name = '%(user)s'
 
     time_format = '%Y.%m.%d-%H.%M.%S'
 
-    # directory name inside src_path that contains project
+    # directory name that contains project
     # this is useful if your project is not in git/hg repo root dir
     project_dir = ''
     # directory name that contains manage.py file (django project root)
     django_dir = ''
     home_path = conf(lambda self: home_path(self.user))
-    fabdeploy_path = ['%(home_path)s', '.fabdeploy.d']
-    fabdeploy_bin_path = ['%(home_path)s', '.fabdeploy.d', 'bin']
-    version_path = ['%(home_path)s', '%(version)s']
-    version_data_file = ['%(version_path)s', '.fabdeploy']
-    src_path = ['%(version_path)s', 'src']
-    project_path = ['%(src_path)s', '%(project_dir)s']
+    releases_path = ['%(home_path)s', 'releases']
+    release_path = ['%(releases_path)s', '%(release)s']
+    release_data_file = ['%(release_path)s', '.fabdeploy']
+    project_path = ['%(release_path)s', '%(project_dir)s']
     django_path = ['%(project_path)s', '%(django_dir)s']
-    env_path = ['%(version_path)s', 'env']
+    env_path = ['%(release_path)s', 'env']
     shared_path = ['%(home_path)s', 'shared']
     media_path = ['%(shared_path)s', 'media']
     etc_path = ['%(shared_path)s', 'etc']
@@ -265,7 +262,7 @@ class DefaultConf(BaseConf):
     backup_path = ['%(var_path)s', 'backup']
 
     project_ldir = ''
-    django_ldir = '%(django_dir)s'
+    django_ldir = ['%(project_ldir)s', '%(django_dir)s']
     home_lpath = sys.path[0]
     src_lpath = '%(home_lpath)s'
     project_lpath = ['%(src_lpath)s', '%(project_ldir)s']
@@ -307,14 +304,16 @@ class DefaultConf(BaseConf):
     postgres__db_port = 5432
 
     pip_cache_path = '/var/run/pip-download-cache'
-    pip_req_lpath = ''
+    pip_req_lpath = '%(project_ldir)s'
     pip_req_file = 'requirements.txt'
 
     # prefix for supervisor programs/groups
     # useful when there are several projects deployed on one server
     supervisor_prefix = ''
     supervisor_config_path = ['%(etc_path)s', 'supervisor']
+    supervisord_config_lfile = 'supervisord.conf'
     supervisord_config_file = '/etc/supervisord.conf'
+    supervisord_log_path = '/var/log/supervisor'
 
     @conf
     def user(self):
@@ -331,9 +330,9 @@ class DefaultConf(BaseConf):
         return datetime.datetime.utcnow().strftime(self.time_format)
 
     @conf
-    def version(self):
-        self.set_globally('version', self.current_time)
-        return self.version
+    def release(self):
+        self.set_globally('release', self.current_time)
+        return self.release
 
     @conf
     def os(self):

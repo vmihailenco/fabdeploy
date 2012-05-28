@@ -13,7 +13,8 @@ __all__ = [
     'exe_python',
     'cpu_count',
     'os_codename',
-    'aptitude_install',
+    'package_update',
+    'package_install',
     'setup_backports',
 ]
 
@@ -61,6 +62,8 @@ class OSCodename(ExePython):
         patterns = [
             ('squeeze', ('debian', '^6', '')),
             ('lenny', ('debian', '^5', '')),
+            ('precise', ('Ubuntu', '^12.04', '')),
+            ('oneiric', ('Ubuntu', '^11.10', '')),
             ('natty', ('Ubuntu', '^11.04', '')),
             ('maverick', ('Ubuntu', '^10.10', '')),
             ('lucid', ('Ubuntu', '^10.04', '')),
@@ -81,29 +84,26 @@ class OSCodename(ExePython):
 os_codename = OSCodename()
 
 
-class AptitudeUpdate(Task):
+class PackageUpdate(Task):
     @conf
     def force(self):
         return False
 
     def do(self):
-        if self.conf.force or not hasattr(env, '_aptitude_updated'):
-            sudo('aptitude update')
-            env._aptitude_updated = True
+        sudo('apt-get update')
 
-aptitude_update = AptitudeUpdate()
+package_update = PackageUpdate()
 
 
-class AptitudeInstall(Task):
+class PackageInstall(Task):
     @conf
     def options(self):
         return ''
 
     def do(self):
-        aptitude_update.run()
-        sudo('aptitude install %(options)s -y %(packages)s' % self.conf)
+        sudo('apt-get install %(options)s -y %(packages)s' % self.conf)
 
-aptitude_install = AptitudeInstall()
+package_install = PackageInstall()
 
 
 BACKPORTS = {
@@ -111,6 +111,10 @@ BACKPORTS = {
               'lenny-backports main contrib non-free'),
     'squeeze': ('http://backports.debian.org/debian-backports '
                 'squeeze-backports main contrib non-free'),
+    'precise': ('http://archive.ubuntu.com/ubuntu '
+              'precise-backports main universe multiverse restricted'),
+    'oneiric': ('http://archive.ubuntu.com/ubuntu '
+              'oneiric-backports main universe multiverse restricted'),
     'natty': ('http://archive.ubuntu.com/ubuntu '
               'natty-backports main universe multiverse restricted'),
     'maverick': ('http://archive.ubuntu.com/ubuntu '
@@ -135,6 +139,6 @@ class SetupBackports(Task):
             '/etc/apt/sources.list.d/backports.sources.list',
             'deb %(backports)s' % self.conf,
             use_sudo=True)
-        aptitude_update.run(force=True)
+        package_update.run(force=True)
 
 setup_backports = SetupBackports()

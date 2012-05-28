@@ -44,14 +44,15 @@ install = Install()
 
 class PushInitConfig(Task):
     def do(self):
-        upload_init_template('supervisord.conf', use_sudo=True)
+        upload_init_template('supervisord.conf')
 
 push_init_config = PushInitConfig()
 
 
 class Start(Task):
     def do(self):
-        sudo('start supervisord')
+        with settings(warn_only=True):
+            sudo('start supervisord')
 
 start = Start()
 
@@ -115,11 +116,11 @@ reload = Reload()
 
 class PushDConfig(Task):
     def do(self):
-        if 'supervisord_config_lfile' in self.conf:
-            upload_config_template(
-                self.conf.supervisord_config_lfile,
-                self.conf.supervisord_config_file,
-                context=self.conf)
+        upload_config_template(
+            self.conf.supervisord_config_lfile,
+            self.conf.supervisord_config_file,
+            context=self.conf,
+            use_sudo=True)
 
 push_d_config = PushDConfig()
 
@@ -129,14 +130,12 @@ class PushConfigs(Task):
 
     @conf
     def configs_glob(self):
-        return '    %(active_etc_link)s/supervisor/*.conf'
+        return '    %(current_etc_link)s/supervisor/*.conf'
 
     def do(self):
         with cd(self.conf.supervisor_config_path):
             # force is needed when folder is empty
             run('rm --force *.conf')
-
-        push_d_config.run()
 
         for program in self.conf.supervisor_programs:
             config = '%s.conf' % program

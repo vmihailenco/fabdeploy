@@ -39,7 +39,7 @@ class Install(Task):
             puts('Mysql is already installed.')
             return
 
-        system.aptitude_install.run(packages='debconf-utils')
+        system.package_install.run(packages='debconf-utils')
 
         version = self.VERSIONS[self.conf.os]
         debconf_defaults = [
@@ -55,7 +55,7 @@ class Install(Task):
                    'MySQL root password is "%s"' % self.conf.db_root_password,
                    '\n', '=' * 10, '\n']
         warn(''.join(message))
-        system.aptitude_install.run(packages='mysql-server')
+        system.package_install.run(packages='mysql-server')
 
 install = Install()
 

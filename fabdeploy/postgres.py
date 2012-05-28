@@ -36,7 +36,7 @@ add_ppa = AddPpa()
 
 class Install(Task):
     def do(self):
-        system.aptitude_install.run(packages='postgresql libpq-dev')
+        system.package_install.run(packages='postgresql libpq-dev')
         sudo('sudo -u %(db_root_user)s '
              'psql '
              '--command="\password %(db_root_user)s" %(db_root_password)s')

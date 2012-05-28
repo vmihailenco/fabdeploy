@@ -15,9 +15,15 @@ __all__ = [
 ]
 
 
-class Init(Task):
+class GitTask(Task):
+    @conf
+    def repo_branch(self):
+        return self.conf.get('repo_branch', 'master')
+
+
+class Init(GitTask):
     def do(self):
-        with cd(self.conf.src_path):
+        with cd(self.conf.release_path):
             run('git init')
             # allow update current branch
             run('git config receive.denyCurrentBranch ignore')
@@ -25,10 +31,10 @@ class Init(Task):
 init = Init()
 
 
-class Push(Task):
+class Push(GitTask):
     @conf
     def dir(self):
-        return self.conf.src_path \
+        return self.conf.release_path \
             .replace(self.conf.home_path, '') \
             .strip(os.sep)
 
@@ -36,40 +42,36 @@ class Push(Task):
     def options(self):
         return ''
 
-    @conf
-    def branch(self):
-        return self.conf.get('branch', 'master')
-
     def do(self):
         local('git push '
               'ssh://%(user)s@%(host)s/~%(user)s/%(dir)s '
-              '%(branch)s' % self.conf)
+              '%(repo_branch)s' % self.conf)
 
-        with cd(self.conf.src_path):
-            run('git checkout --force %(branch)s' % self.conf)
+        with cd(self.conf.release_path):
+            run('git checkout --force %(repo_branch)s' % self.conf)
 
 push = Push()
 
 
-class Pull(Task):
+class Pull(GitTask):
     def do(self):
-        with cd(self.conf.src_path):
-            run('git pull %(git_origin)s %(branch)s' % self.conf)
-            run('git checkout %(branch)s' % self.conf)
+        with cd(self.conf.release_path):
+            run('git pull %(repo_origin)s %(repo_branch)s' % self.conf)
+            run('git checkout %(repo_branch)s' % self.conf)
 
 pull = Pull()
 
 
-class Tag(Task):
+class Tag(GitTask):
     def do(self):
-        run('git tag %(version)s' % self.conf)
+        run('git tag %(release)s' % self.conf)
 
 tag = Tag()
 
 
-class LastCommit(Task):
+class LastCommit(GitTask):
     def do(self):
-        with cd(self.conf.src_path):
+        with cd(self.conf.release_path):
             return run('git log -n 1 --pretty=oneline')
 
 last_commit = LastCommit()

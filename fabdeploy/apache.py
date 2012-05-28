@@ -38,7 +38,7 @@ graceful = Graceful()
 
 class Install(Task):
     def do(self):
-        system.aptitude_install.run(
+        system.package_install.run(
             packages='apache2 libapache2-mod-wsgi libapache2-mod-rpaf')
         for site in ['default', '000-default']:
             sudo('rm --force /etc/apache2/sites-enabled/' + site)

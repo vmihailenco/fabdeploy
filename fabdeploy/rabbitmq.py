@@ -10,7 +10,7 @@ __all__ = ['install', 'add_user', 'add_vhost', 'set_permissions']
 
 @task
 def install():
-    system.aptitude_install.run(packages='rabbitmq-server')
+    system.package_install.run(packages='rabbitmq-server')
 
 
 class AddUser(Task):

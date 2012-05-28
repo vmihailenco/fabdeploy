@@ -32,7 +32,7 @@ class Push(PushTask):
         exclude_string = ' '.join(['--exclude "%s"' % pattern
                                    for pattern in excludes])
 
-        if os.path.exists('%(src_path)s/.excludes' % self.conf):
+        if os.path.exists('%(release_path)s/.excludes' % self.conf):
             exclude_string = '--exclude-from .excludes ' + exclude_string
 
         return exclude_string
@@ -42,7 +42,7 @@ class Push(PushTask):
               '--create '
               '--gzip '
               '--file %(src_file)s '
-              '--directory %(src_path)s .' % self.conf)
+              '--directory %(release_path)s .' % self.conf)
         put(self.conf.src_file, self.conf.target_file)
         local('rm %(src_file)s' % self.conf)
         with cd(self.conf.target_path):
@@ -63,7 +63,7 @@ class PushFiles(PushTask):
             files = [f.strip() for f in self.conf.files.split(',')]
         self.conf._files = '--add-file ' + '--add-file '.join(files)
 
-        with lcd(self.conf.src_path):
+        with lcd(self.conf.release_path):
             local(
                 'tar '
                 '--create '

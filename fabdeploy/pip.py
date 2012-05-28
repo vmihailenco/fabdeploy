@@ -3,9 +3,18 @@ from fabric.api import sudo, run
 from .containers import conf
 from .task import Task
 from .utils import home_path, upload_config_template
+from . import system
 
 
-__all__ = ['install', 'push_config']
+__all__ = ['install_pip', 'install', 'push_config']
+
+
+class InstallPip(Task):
+    def do(self):
+        system.package_install.run(packages='python-pip')
+        sudo('pip install --upgrade pip virtualenv')
+
+install_pip = InstallPip()
 
 
 class Install(Task):

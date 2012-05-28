@@ -13,17 +13,17 @@ __all__ = [
 ]
 
 
+class AddPpa(Task):
+    def do(self):
+        sudo('add-apt-repository ppa:nginx/stable')
+        system.package_update.run(force=True)
+
+add_ppa = AddPpa()
+
+
 class Install(Task):
     def do(self):
-        if self.conf.os in ['lucid', 'maverick', 'natty']:
-            sudo('add-apt-repository ppa:nginx/stable')
-            system.aptitude_update.run(force=True)
-            system.aptitude_install.run(packages='nginx')
-        else:
-            options = {'lenny': '-t lenny-backports'}
-            system.aptitude_install.run(
-                packages='nginx',
-                options=options.get(self.conf.os, ''))
+        system.package_install.run(packages='nginx')
         sudo('rm --force /etc/nginx/sites-enabled/default')
 
 install = Install()

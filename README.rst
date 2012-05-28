@@ -332,7 +332,7 @@ Typical fabfile may look like this::
     @task
     def deploy():
         fabd.mkdirs.run()
-        version.create.run()
+        release.create.run()
 
         postgres.dump.run()
 
@@ -352,7 +352,7 @@ Typical fabfile may look like this::
         django.migrate.run()
         django.collectstatic.run()
 
-        version.activate.run()
+        release.activate.run()
 
         supervisor.update.run()
         supervisor.restart_program.run(program='celeryd')
